@@ -101,9 +101,8 @@ plot(map_automix)$mix
 ![](README_files/figure-markdown_github/unnamed-chunk-2-1.png)
 
 The resulting MAP prior is approximated by a mixture of conjugate
-priors, given by
-*π*<sub>1</sub>(*θ*) = 0.63*B**e**t**a*(42.5,77.2) + 0.37*B**e**t**a*(7.2,12.4),
-with *θ̂*<sub>*h*</sub> ≈ 0.36.
+priors, given by *π*<sub>1</sub>(*θ*) = 0.63 Beta(42.5, 77.2) + 0.37
+Beta(7.2, 12.4), with *θ̂*<sub>*h*</sub> ≈ 0.36.
 
 #### SAM Weight Determination
 
@@ -116,6 +115,7 @@ inappropriate to borrow any information from *D*<sub>*h*</sub>. Consider
 two hypotheses:
 
 *H*<sub>0</sub> : *θ* = *θ*<sub>*h*</sub>,  *H*<sub>1</sub> : *θ* = *θ*<sub>*h*</sub> + *δ* or *θ* = *θ*<sub>*h*</sub> − *δ*.
+
 *H*<sub>0</sub> represents that *D*<sub>*h*</sub> and *D* are consistent
 (i.e., no prior-data conflict) and thus information borrowing is
 desirable, whereas *H*<sub>1</sub> represents that the treatment effect
@@ -125,14 +125,18 @@ information should be borrowed.
 The SAM prior uses the likelihood ratio test (LRT) statistics *R* to
 quantify the degree of prior-data conflict and determine the extent of
 information borrowing.
+
 $$
 R = \frac{P(D \| H_0, \theta_h)}{P(D \| H_1, \theta_h)} = \frac{P(D \| \theta = \theta_h)}{\max \\{ P(D \| \theta = \theta_h + \delta), P(D \| \theta = \theta_h - \delta) \\}} ,
 $$
+
 where *P*(*D*\|⋅) denotes the likelihood function. An alternative
 Bayesian choice is the posterior probability ratio (PPR):
+
 $$
 R = \frac{P(D \| H_0, \theta_h)}{P(D \| H_1, \theta_h)} = \frac{P(H_0)}{P(H_1)} \times BF ,
 $$
+
 where *P*(*H*<sub>0</sub>) and *P*(*H*<sub>1</sub>) is the prior
 probabilities of *H*<sub>0</sub> and *H*<sub>1</sub> being true. *B**F*
 is the Bayes Factor that in this case is the same as LRT.
@@ -141,9 +145,13 @@ The SAM prior, denoted as *π*<sub>*s**a**m*</sub>(*θ*), is then defined
 as a mixture of an informative prior *π*<sub>1</sub>(*θ*), constructed
 based on *D*<sub>*h*</sub>, with a non-informative prior
 *π*<sub>0</sub>(*θ*):
+
 *π*<sub>*s**a**m*</sub>(*θ*) = *w**π*<sub>1</sub>(*θ*) + (1−*w*)*π*<sub>0</sub>(*θ*)
+
 where the mixture weight *w* is calculated as:
+
 $$w = \frac{R}{1 + R}.$$
+
 As the level of prior-data conflict increases, the likelihood ratio *R*
 decreases, resulting in a decrease in the weight *w* assigned to the
 informative prior and a decrease in information borrowing. As a result,
@@ -259,4 +267,5 @@ Peng Yang ([py11@rice.edu](mailto:py11@rice))
 
 \[1\] Yang P. et al., *Arxiv*, <https://arxiv.org/abs/2305.12279>.  
 \[2\] Schmidli H. et al., *Biometrics* 2014;70(4):1023-1032.  
-\[3\] Baeten D. et al., *The Lancet*, 2013, (382), 9906, p 1705.
+\[3\] Baeten D. et al., *The Lancet*, 2013, (382), 9906, p 1705.  
+\[4\] Neuenschwander B. et al., *Clin Trials*. 2010; 7(1):5-18.
