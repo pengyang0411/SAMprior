@@ -146,7 +146,7 @@ as a mixture of an informative prior *π*<sub>1</sub>(*θ*), constructed
 based on *D*<sub>*h*</sub>, with a non-informative prior
 *π*<sub>0</sub>(*θ*):
 
-*π*<sub>*s**a**m*</sub>(*θ*) = *w**π*<sub>1</sub>(*θ*) + (1−*w*)*π*<sub>0</sub>(*θ*)
+*π*<sub>*s**a**m*</sub>(*θ*) = *w* *π*<sub>1</sub>(*θ*) + (1−*w*)*π*<sub>0</sub>(*θ*),
 
 where the mixture weight *w* is calculated as:
 

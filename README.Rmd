@@ -128,7 +128,9 @@ The SAM prior, denoted as $\pi_{sam}(\theta)$, is then defined as a mixture
 of an informative prior $\pi_1(\theta)$, constructed based on $D_h$, with a 
 non-informative prior $\pi_0(\theta)$:
 
-$$\pi_{sam}(\theta) = w \pi_1(\theta) + (1 - w) \pi_0(\theta)$$
+$$
+\pi_{sam}(\theta) = w \pi_1(\theta) + (1 - w) \pi_0(\theta),
+$$
 
 where the mixture weight $w$ is calculated as:
 
