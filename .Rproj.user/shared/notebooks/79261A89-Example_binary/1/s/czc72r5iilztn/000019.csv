@@ -1,0 +1,7 @@
+"0","## Current trial data"
+"0","ASAS20 <- data.frame(study = c('Baeten (2013)', 'Deodhar (2016)', 'Deodhar (2019)',"
+"0","                               'Erdes (2019)', 'Huang (2019)', 'Kivitz (2018)',"
+"0","                               'Pavelka (2017)', 'Sieper (2017)', 'Van der Heijde (2018)'),"
+"0","                     n = c(6, 122, 104, 23, 153, 117, 76, 74, 87),"
+"0","                     r = c(1, 35, 31, 10, 56, 55, 28, 21, 35))"
+"0","kable(ASAS20)"

@@ -1,0 +1,11 @@
+"0","wSAM <- SAM_weight(if.prior = map_automix, "
+"0","                   delta = 0.5 * sigma,"
+"0","                   method.w = 'PPR',"
+"0","                   prior.odds = 3/7,"
+"0","                   data = data.crt)"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"0","cat('SAM weight: ', wSAM)"
+"1","SAM weight: "
+"1"," "
+"1","0.8823983"

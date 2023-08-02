@@ -1,0 +1,12 @@
+"0","n <- 35; r = 10 "
+"0","wSAM <- SAM_weight(if.prior = map_automix, "
+"0","                   delta = 0.2,"
+"0","                   n = n, r = r)"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"0","cat('SAM weight: ', wSAM)"
+"1","SAM weight: "
+"1"," "
+"1","0.8090342"

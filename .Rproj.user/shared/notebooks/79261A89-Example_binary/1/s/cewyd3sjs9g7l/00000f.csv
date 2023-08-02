@@ -1,0 +1,146 @@
+"0","weight_grid <- seq(1, 34, by = 1)"
+"0","weight_res  <- lapply(1:34, function(x) SAM_weight(if.prior = map_automix, "
+"0","                                                   delta = 0.2,"
+"0","                                                   n = 35, r = x))"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"0","df_weight <- data.frame(grid   = weight_grid/35,"
+"0","                        weight = unlist(weight_res))"
+"0","qplot(grid, weight, data = df_weight, geom = ""line"", main= ""SAM Weight"") +"
+"0","  xlab('Response Rate from Control trial')+ ylab('Weight') +"
+"0","  geom_vline(xintercept = summary(map_automix)['mean'], linetype = 2, col = 'blue') "
+"2","Warning: `qplot()` was deprecated in ggplot2 3.4.0."

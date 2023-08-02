@@ -1,0 +1,65 @@
+"0","sigma = 3"
+"0","# load R packages"
+"0","library(ggplot2)"
+"0","theme_set(theme_bw()) # sets up plotting theme"
+"0","set.seed(22)"
+"0","map_mcmc <- gMAP(cbind(mean, se) ~ 1 | study, "
+"0","                 weights=n,data=dat,"
+"0","                 family=gaussian,"
+"0","                 beta.prior=cbind(0, sigma),"
+"0","                 tau.dist=""HalfNormal"",tau.prior=cbind(0,sigma/2))"
+"2","Warning: There were 1 divergent transitions after warmup. See
+https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+to find out why this is a problem and how to eliminate them."
+"2","Warning: Examine the pairs() plot to diagnose sampling problems
+"
+"2","Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+Running the chains for more iterations may help. See
+https://mc-stan.org/misc/warnings.html#bulk-ess"
+"2","Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+Running the chains for more iterations may help. See
+https://mc-stan.org/misc/warnings.html#tail-ess"
+"2","Final MCMC sample equivalent to less than 1000 independent draws.
+Please consider increasing the MCMC simulation size.
+"
+"2","Warning: In total 1 divergent transitions occured during the sampling phase.
+Please consider increasing adapt_delta closer to 1 with the following command prior to gMAP:
+options(RBesT.MC.control=list(adapt_delta=0.999))"
+"0","map_automix <- automixfit(map_mcmc)"
+"0","map_automix"
+"1","EM for Normal Mixture Model
+Log-Likelihood = "
+"1",""
+"1","-496.2542"
+"1",""
+"1","
+
+"
+"1","Univariate normal mixture
+"
+"1","Reference scale: "
+"1",""
+"1","2.831279"
+"1",""
+"1","
+"
+"1","Mixture Components:
+"
+"1"," "
+"1"," comp1      "
+"1"," comp2      "
+"1","
+w"
+"1","  0.72608647"
+"1","  0.27391353"
+"1","
+m"
+"1"," -0.02731726"
+"1","  0.06970478"
+"1","
+s"
+"1","  0.37923818"
+"1","  1.32507206"
+"1","
+"
+"0","plot(map_automix)$mix"

@@ -1,0 +1,224 @@
+#' Mixing weight determination for Self-adjusting mixture (SAM) prior
+#'
+#' Calculate the mixing weight for SAM prior to dynamically determine the
+#' degree of prior-data conflicts.
+#'
+#' @param priormix prior (mixture of conjugate distributions from historical data).
+#' @param data individual data from current trial. Either individual or summary
+#'  data has to be provided (see below).
+#' @param delta clinically significant difference.
+#' @param ... optional arguments are ignored.
+#'
+#' @details A data-driven approach is applied to determine the mixing weight
+#'  \eqn{w} that yields SAM prior capable of dynamically adjusting \eqn{w} based
+#'  on the extent of prior-data conflict. Let
+#'
+#'  \deqn{H_0: \theta = \theta_h, H_1: \theta = \theta_h + \delta or \theta = \theta_h - \delta.}
+#'  Under \eqn{H_0}, historical data \eqn{D_h} and current trial \eqn{D} is
+#'  consistent and exhibit no prior-data conflict. Under \eqn{H_1}, the treatment
+#'  effect of \eqn{D} and \eqn{D_h} differ to such a degree that no information
+#'  should be borrowed. The extent of information borrowing can be quantified
+#'  by the likelihood ratio test statistics:
+#'
+#'  \deqn{R = P(D | H_0, \theta_h) / P(D | H_1, \theta_h) = P(D | \theta = \theta_h) / \max(P(D | \theta = \theta_h + \delta), P(D | \theta = \theta_h - \delta)) ,}
+#'  where \eqn{P(D | \cdot)} denotes the likelihood function. Then, the self-adjusting
+#'  mixture prior is given by
+#'
+#'  \deqn{\pi_{sam}(\theta) = w \pi_1(\theta) + (1 - w) \pi_0(\theta),}
+#'  where \eqn{\pi_1(\theta)} is the informative prior constructed based on
+#'  \eqn{D_h} and \eqn{\pi_0(\theta)} is a non-informative prior. The mixing
+#'  weight
+#'
+#'  \deqn{w = R / (1 + R).}
+#'  As the level of prior-data conflict increases, \eqn{R} decreases, resulting in a decrease in the weight
+#'  \eqn{w} assigned to information borrowing.
+#'
+#' @examples
+#' ## Example of binary endpoints with individual under uniform prior
+#' set.seed(123)
+#' prior.historical <- mixbeta(c(1, 1, 1))
+#' data.control     <- rbinom(60, size = 1, prob = 0.2)
+#' wSAM             <- SAM_weight(priormix = prior.historical,
+#'                                delta = 0.1,
+#'                                data = data.control)
+#' print(wSAM)
+#'
+#' ## or with the summary statistics
+#' n <- length(data.control); x = sum(data.control)
+#' wSAM             <- SAM_weight(priormix = prior.historical,
+#'                                delta = 0.1, n = n, x = x)
+#' print(wSAM)
+#'
+#' ## Try informative prior from historical data that consistent with current
+#' ## control trial
+#' prior.historical <- mixbeta(c(1, 10, 40))
+#' data.control     <- rbinom(60, size = 1, prob = 0.2)
+#' wSAM             <- SAM_weight(priormix = prior.historical,
+#'                                delta = 0.1,
+#'                                data = data.control)
+#' print(wSAM)
+#'
+#' ## Example of continues endpoints with individual data
+#' ## where the historical data is not consistent with current control trial
+#' sigma      <- 3
+#' prior.mean <- 0
+#' prior.se   <- sigma/sqrt(30)
+#'
+#' prior.historical <- mixnorm(c(1, prior.mean, prior.se), sigma = sigma)
+#' data.control     <- rnorm(30, mean = 1, sd = sigma)
+#' wSAM             <- SAM_weight(priormix = prior.historical,
+#'                                delta = 0.2 * sigma,
+#'                                data = data.control)
+#' print(wSAM)
+#'
+#' ## Try informative prior from historical data that consistent with current
+#' ## control trial
+#' data.control     <- rnorm(30, mean = .2, sd = sigma)
+#' wSAM             <- SAM_weight(priormix = prior.historical,
+#'                                delta = 0.2 * sigma,
+#'                                data = data.control)
+#' print(wSAM)
+#'
+#' ## Example of survival endpoints with individual data
+#' ## where the historical data is not consistent with current control trial
+#' ## Simulate the survival endpoints from historical
+#' T_hi <- rexp(100, rate = 1)
+#' ## Generate random censored time
+#' C_hi <- runif(100, min = 0.5, max = 5)
+#' ## Generate the indiator
+#' delta_hi <- as.numeric(T_hi < C_hi)
+#' U_hi     <- T_hi
+#' U_hi[delta_hi == 0] <- C_hi[delta_hi == 0]
+#' ## Simulate the survival endpoints from control arm
+#' T_ci <- rexp(100, rate = 2)
+#' ## Generate random censored time
+#' C_ci <- runif(100, min = 0.5, max = 5)
+#' ## Generate the indiator
+#' delta_ci <- as.numeric(T_ci < C_ci)
+#' U_ci     <- T_ci
+#' U_ci[delta_ci == 0] <- C_ci[delta_ci == 0]
+#' prior.historical <- mixgamma(c(1, sum(delta_hi), sum(U_hi)),
+#'                              param = 'ab', likelihood = 'exp')
+#' data.control     <- rbind(sum(delta_ci), sum(U_ci))
+#' wSAM             <- SAM_weight(priormix = prior.historical,
+#'                                delta = 0.2,
+#'                                data = data.control)
+#' print(wSAM)
+#'
+#' ## Try informative prior from historical data that consistent with current
+#' ## control trial
+#' ## Simulate the survival endpoints from control arm
+#' T_ci <- rexp(100, rate = 0.95)
+#' ## Generate random censored time
+#' C_ci <- runif(100, min = 0.5, max = 5)
+#' ## Generate the indiator
+#' delta_ci <- as.numeric(T_ci < C_ci)
+#' U_ci     <- T_ci
+#' U_ci[delta_ci == 0] <- C_ci[delta_ci == 0]
+#'
+#' prior.historical <- mixgamma(c(1, sum(delta_hi), sum(U_hi)),
+#'                              param = 'ab', likelihood = 'exp')
+#' data.control     <- rbind(sum(delta_ci), sum(U_ci))
+#' wSAM             <- SAM_weight(priormix = prior.historical,
+#'                                delta = 0.2,
+#'                                data = data.control)
+#' print(wSAM)
+#'
+#' @export
+SAM_weight <- function(priormix, data, delta, ...) UseMethod("SAM_weight")
+
+#' @export
+SAM_weight.default <- function(priormix, data, delta, ...) "Unknown distribution"
+
+#' @describeIn SAM_weight Calculates the SAM weight for beta mixture
+#' distribution. The individual data vector is expected to be a vector
+#' of 0 and 1, i.e. a series of Bernoulli experiments. Alternatively,
+#' the sufficient statistics \code{n} and \code{x} can be given,
+#' i.e. number of trials and responses, respectively.
+#' @param n Number of trials in the control arm.
+#' @param x Number of subjects in the control arm.
+#' @export
+SAM_weight.betaMix <- function(priormix, data, delta, n, x, ...) {
+  if(!missing(data)) {
+    assertthat::assert_that(all(data %in% c(0,1)))
+    x <- sum(data)
+    n <- length(data)
+  }
+  ## The posterior mean estimation from the MAP prior
+  theta_h_hat <- summary(priormix)[1]
+
+  ## Calculate the weight for SAM prior
+  R <- max(dbinom(x = x, size = n, prob = min(theta_h_hat + delta, 0.99)),
+           dbinom(x = x, size = n, prob = max(theta_h_hat - delta, 0.01)))
+
+  R <- R / dbinom(x = x, size = n, prob = theta_h_hat)
+
+  ## SAM weight
+  w = 1 / (1 + R)
+
+  return(w)
+}
+
+
+#' @describeIn SAM_weight Calculates the SAM weight for normal mixture distribution.
+#' A vector \code{data} of individual data from control trial must be given.
+#' @export
+SAM_weight.normMix <- function(priormix, data, delta, ...) {
+  if(!missing(data)) {
+    m <- mean(data)
+    n <- length(data)
+    se <- sd(data)/sqrt(n)
+  } else {
+    if(missing(data)){
+      stop("Individual data must be given.")
+    }
+  }
+
+  ## The posterior mean estimation from the MAP prior
+  theta_h_hat <- summary(priormix)[1]
+
+  ## Calculate the weight for SAM prior
+  R1 <- sum(dnorm(data, mean = theta_h_hat - delta, se, log = T) - dnorm(data, mean = theta_h_hat, se, log = T))
+  R2 <- sum(dnorm(data, mean = theta_h_hat + delta, se, log = T) - dnorm(data, mean = theta_h_hat, se, log = T))
+  R  <- exp(max(R1, R2))
+
+  ## SAM weight
+  w = 1 / (1 + R)
+
+  return(w)
+}
+
+
+#' @describeIn SAM_weight Calculates the SAM weight for gamma mixture distribution.
+#' Either a matrix \code{data} contains individual data of censoring indication
+#' (row 1) and observed time (row 2) or summary data which include number of
+#' uncensored observations \code{r} and total observed time \code{w} should be
+#' given.
+#' @param r Number of uncensored observations.
+#' @param w Total observed time.
+#' @export
+SAM_weight.gammaMix <- function(priormix, data, delta, r, w, ...) {
+  if(!missing(data)) {
+    r <- sum(data[1,])
+    w <- sum(data[2,])
+  } else {
+    if(missing(r) | missing(w)){
+      stop("Individual or summary data must be given.")
+    }
+  }
+
+  ## The posterior mean estimation from the MAP prior
+  hazard_h_hat <- summary(priormix)[1]
+
+  ## Calculate the weight for SAM prior
+  R <- max(dgamma(hazard_h_hat + delta, shape = r + 1, rate = w),
+           dgamma(hazard_h_hat - delta, shape = r + 1, rate = w))
+
+  R <- R / dgamma(hazard_h_hat, shape = r + 1, rate = w)
+
+  ## SAM weight
+  w = 1 / (1 + R)
+
+  return(w)
+}
+

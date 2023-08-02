@@ -1,0 +1,14 @@
+"0","set.seed(234)"
+"0","sigma        <- 3 ## Standard deviation in the current trial"
+"0","data.crt     <- rnorm(30, mean = 0.4, sd = sigma)"
+"0","wSAM <- SAM_weight(if.prior = map_automix, "
+"0","                   delta = 0.5 * sigma,"
+"0","                   data = data.crt)"
+"2","Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.
+"
+"2","Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.
+"
+"0","cat('SAM weight: ', wSAM)"
+"1","SAM weight: "
+"1"," "
+"1","0.9459683"
