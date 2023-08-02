@@ -147,6 +147,30 @@ get_OC.betaMix <- function(if.prior, theta.h, method.w, prior.odds, nf.prior, de
     stop('Theta under control and treatment should be the same length!')
   }
 
+  if(missing(decision)){
+    stop('Please input decision!')
+  }
+
+  if(missing(if.prior)){
+    stop('Please input the informative prior!')
+  }
+
+  if(missing(n)){
+    stop('Please input the sample size for control arm!')
+  }
+
+  if(missing(n.t)){
+    stop('Please input the sample size for treatment arm!')
+  }
+
+  if(missing(ntrial)){
+    stop('Please input the number of trials for simulation!')
+  }
+
+  if(missing(delta)){
+    stop('Please input clinically significant difference!')
+  }
+
   if(missing(theta.h)){
     message("Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.")
     theta.h <- summary(if.prior)['mean']
@@ -309,6 +333,34 @@ get_OC.normMix <- function(if.prior, theta.h, method.w, prior.odds, nf.prior, de
   ## Check if theta and theta.t is the same length
   if(length(theta) != length(theta.t)){
     stop('Theta under control and treatment should be the same length!')
+  }
+
+  if(missing(decision)){
+    stop('Please input decision!')
+  }
+
+  if(missing(if.prior)){
+    stop('Please input the informative prior!')
+  }
+
+  if(missing(nf.prior)){
+    stop('Please input the non-informative prior!')
+  }
+
+  if(missing(n)){
+    stop('Please input the sample size for control arm!')
+  }
+
+  if(missing(n.t)){
+    stop('Please input the sample size for treatment arm!')
+  }
+
+  if(missing(ntrial)){
+    stop('Please input the number of trials for simulation!')
+  }
+
+  if(missing(delta)){
+    stop('Please input clinically significant difference!')
   }
 
   if(!missing(method.w)){
