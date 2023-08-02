@@ -114,7 +114,9 @@ regarded as clinically distinct from *θ*, and it is therefore
 inappropriate to borrow any information from *D*<sub>*h*</sub>. Consider
 two hypotheses:
 
-*H*<sub>0</sub> : *θ* = *θ*<sub>*h*</sub>,  *H*<sub>1</sub> : *θ* = *θ*<sub>*h*</sub> + *δ* or *θ* = *θ*<sub>*h*</sub> − *δ*.
+$$
+H_0: \theta = \theta_h, ~~ H_1: \theta = \theta_h + \delta ~ \text{or} ~ \theta = \theta_h - \delta.
+$$
 
 *H*<sub>0</sub> represents that *D*<sub>*h*</sub> and *D* are consistent
 (i.e., no prior-data conflict) and thus information borrowing is
@@ -146,11 +148,15 @@ as a mixture of an informative prior *π*<sub>1</sub>(*θ*), constructed
 based on *D*<sub>*h*</sub>, with a non-informative prior
 *π*<sub>0</sub>(*θ*):
 
-*π*<sub>*s**a**m*</sub>(*θ*) = *w* *π*<sub>1</sub>(*θ*) + (1−*w*)*π*<sub>0</sub>(*θ*),
+$$
+\pi_{sam}(\theta) = w \pi_1(\theta) + (1 - w) \pi_0(\theta),
+$$
 
 where the mixture weight *w* is calculated as:
 
-$$w = \frac{R}{1 + R}.$$
+$$
+w = \frac{R}{1 + R}.
+$$
 
 As the level of prior-data conflict increases, the likelihood ratio *R*
 decreases, resulting in a decrease in the weight *w* assigned to the

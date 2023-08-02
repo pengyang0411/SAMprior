@@ -134,7 +134,9 @@ $$
 
 where the mixture weight $w$ is calculated as:
 
-$$w = \frac{R}{1 + R}.$$ 
+$$
+w = \frac{R}{1 + R}.
+$$ 
 
 As the level of prior-data conflict increases, the likelihood ratio $R$ 
 decreases, resulting in a decrease in the weight $w$ assigned to the 
