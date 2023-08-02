@@ -47,22 +47,20 @@ the control were used to construct the MAP prior:
 
 ### SAM Prior Derivation
 
-SAM prior is constructed by mixing an informative prior
-*π*<sub>1</sub>(*θ*), constructed based on historical data, with a
-non-informative prior *π*<sub>0</sub>(*θ*) using the mixture weight *w*
-determined by **`SAM_weight`** function to achieve the degree of
-prior-data conflict \[1\]. The following sections describe how to
-construct SAM prior in details.
+SAM prior is constructed by mixing an informative prior $\pi_1(\theta)$, 
+constructed based on historical data, with a non-informative prior 
+$\pi_0(\theta)$ using the mixture weight $w$ determined by **`SAM_weight`**
+function to achieve the degree of prior-data conflict \[1\]. The following 
+sections describe how to construct SAM prior in details.
 
 #### Informative Prior Construction based on Historical Data
 
-To construct informative priors based on the aforementioned nine
-historical data, we apply **`gMAP`** function from RBesT to perform
-meta-analysis. This informative prior results in a representative form
-from a large MCMC samples, and it can be converted to a parametric
-representation with the **`automixfit`** function using
-expectation-maximization (EM) algorithm \[4\]. This informative prior is
-also called MAP prior.
+To construct informative priors based on the aforementioned nine historical 
+data, we apply **`gMAP`** function from RBesT to perform meta-analysis. This 
+informative prior results in a representative form from a large MCMC samples, 
+and it can be converted to a parametric representation with the 
+**`automixfit`** function using expectation-maximization (EM) algorithm \[4\].
+This informative prior is also called MAP prior.
 
 ``` r
 # load R packages
@@ -100,6 +98,7 @@ plot(map_automix)$mix
 
 ![](README_files/figure-markdown_github/unnamed-chunk-2-1.png)
 
+
 The resulting MAP prior is approximated by a mixture of conjugate priors, 
 given by $\pi_1(\theta) = 0.63 Beta(42.5, 77.2) + 0.37 Beta(7.2, 12.4)$, with 
 $\hat{\theta}_h \approx 0.36$.
@@ -127,14 +126,14 @@ the degree of prior-data conflict and determine the extent of information
 borrowing.
 
 $$
-R = \frac{P(D \| H_0, \theta_h)}{P(D \| H_1, \theta_h)} = \frac{P(D \| \theta = \theta_h)}{\max \\{ P(D \| \theta = \theta_h + \delta), P(D \| \theta = \theta_h - \delta) \\}} ,
+R = \frac{P(D | H_0, \theta_h)}{P(D | H_1, \theta_h)} = \frac{P(D | \theta = \theta_h)}{\max \{ P(D | \theta = \theta_h + \delta), P(D | \theta = \theta_h - \delta) \}} ,
 $$
 
 where $P(D | \cdot)$ denotes the likelihood function. An alternative Bayesian
 choice is the posterior probability ratio (PPR):
 
 $$
-R = \frac{P(D \| H_0, \theta_h)}{P(D \| H_1, \theta_h)} = \frac{P(H_0)}{P(H_1)} \times BF ,
+R = \frac{P(D | H_0, \theta_h)}{P(D | H_1, \theta_h)} = \frac{P(H_0)}{P(H_1)} \times BF ,
 $$
 
 where $P(H_0)$ and $P(H_1)$ is the prior probabilities of $H_0$ and $H_1$ 
@@ -152,7 +151,7 @@ where the mixture weight $w$ is calculated as:
 
 $$
 w = \frac{R}{1 + R}.
-$$
+$$ 
 
 As the level of prior-data conflict increases, the likelihood ratio $R$ 
 decreases, resulting in a decrease in the weight $w$ assigned to the 
@@ -195,13 +194,11 @@ probability of $H_1$. In this case (e.g., **`prior.odds = 3/7`**), the prior
 information favors the presence prior-data conflict and it results in a 
 decreased mixture weight.
 
-When historical information is congruent with the current control arm,
-SAM weight reaches to the highest peak. As the level of prior-data
-conflict increases, SAM weight decreases. This demonstrates that SAM
-prior is data-driven and self-adapting, favoring the informative
-(non-informative) prior component when there is little (substantial)
-evidence of prior-data conflict.
-
+When historical information is congruent with the current control arm, SAM 
+weight reaches to the highest peak. As the level of prior-data conflict 
+increases, SAM weight decreases. This demonstrates that SAM prior is data-driven
+and self-adapting, favoring the informative (non-informative) prior component 
+when there is little (substantial) evidence of prior-data conflict.
 ![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)
 
 #### SAM Prior Construction
