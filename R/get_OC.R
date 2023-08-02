@@ -87,7 +87,7 @@
 #'              ## Decision rule to compare the whether treatment is superior
 #'              ## than the control
 #'              decision = decision2S(0.95, 0, lower.tail=FALSE),
-#'              ntrial   = 500,  ## Number of trials simulated
+#'              ntrial   = 300,  ## Number of trials simulated
 #'              ## Weight assigned to the informative component for MAP prior
 #'              weight = 0.5,
 #'              ## A vector of response rate for the control arm
@@ -118,7 +118,7 @@
 #'              ## Decision rule to compare the whether treatment is superior
 #'              ## than the control
 #'              decision = decision2S(0.95, 0, lower.tail=FALSE),
-#'              ntrial   = 500,  ## Number of trials simulated
+#'              ntrial   = 300,  ## Number of trials simulated
 #'              ## A vector of mean for the control arm
 #'              theta    = c(0.1, 0.5),
 #'              ## A vector of mean for the treatment arm

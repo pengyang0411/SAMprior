@@ -1,7 +1,7 @@
 Package: SAMprior
 Type: Package
-Title: Self-adapting Mixture (SAM) Priors 
-Version: 0.1.0
+Title: Self-Adapting Mixture (SAM) Priors 
+Version: 1.0.0
 Author: Peng Yang, Ying Yuan
 Maintainer: Peng Yang <py11@rice.edu>
 Description: The SAMprior package is designed to calculate the SAM prior and
