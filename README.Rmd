@@ -85,7 +85,7 @@ plot(map_automix)$mix
 ```
 
 The resulting MAP prior is approximated by a mixture of conjugate priors, 
-given by $\pi_1(\theta)$ = 0.63 Beta(42.5, 77.2) + 0.37 Beta(7.2, 12.4), with 
+given by $\pi_1(\theta) = 0.63 Beta(42.5, 77.2) + 0.37 Beta(7.2, 12.4)$, with 
 $\hat{\theta}_h \approx 0.36$.
 
 #### SAM Weight Determination
