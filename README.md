@@ -202,11 +202,6 @@ prior is data-driven and self-adapting, favoring the informative
 (non-informative) prior component when there is little (substantial)
 evidence of prior-data conflict.
 
-    ## Warning: `qplot()` was deprecated in ggplot2 3.4.0.
-    ## This warning is displayed once every 8 hours.
-    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-    ## generated.
-
 ![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)
 
 #### SAM Prior Construction

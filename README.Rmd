@@ -177,7 +177,7 @@ weight reaches to the highest peak. As the level of prior-data conflict
 increases, SAM weight decreases. This demonstrates that SAM prior is data-driven
 and self-adapting, favoring the informative (non-informative) prior component 
 when there is little (substantial) evidence of prior-data conflict.
-```{r, echo=FALSE, message=FALSE}
+```{r, echo=FALSE, message=FALSE,warning=FALSE}
 weight_grid <- seq(1, 34, by = 1)
 weight_res  <- lapply(1:34, function(x) SAM_weight(if.prior = map_automix, 
                                                    delta = 0.2,
