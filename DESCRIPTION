@@ -2,11 +2,17 @@ Package: SAMprior
 Type: Package
 Title: Self-Adapting Mixture (SAM) Priors 
 Version: 1.0.0
-Author: Peng Yang, Ying Yuan
+Authors@R: c(person(given = "Peng", family = "Yang", email = "py11@rice.edu", 
+                    role = c("aut", "cre"),
+                    comment = c(ORCID = "0000-0002-0630-9506")), 
+             person(given = "Ying", family = "Yuan", email = "yyuan@mdanderson.org", 
+                    role = "aut",
+                    comment = c(ORCID = "0000-0003-3163-480X")))
 Maintainer: Peng Yang <py11@rice.edu>
 Description: The SAMprior package is designed to calculate the SAM prior and
     generate its operating characteristics for dynamically borrowing information
-    from historical data.
+    from historical data. For details, please check Yang et al. (2023) 
+    <arXiv:https://arxiv.org/abs/2305.12279>.  
 Depends: 
     RBesT,
     assertthat,
