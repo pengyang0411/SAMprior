@@ -9,10 +9,10 @@ Authors@R: c(person(given = "Peng", family = "Yang", email = "py11@rice.edu",
                     role = "aut",
                     comment = c(ORCID = "0000-0003-3163-480X")))
 Maintainer: Peng Yang <py11@rice.edu>
-Description: 'SAMprior' is designed to calculate the SAM prior and generate 
-    its operating characteristics for dynamically borrowing information
-    from historical data. For details, please check Yang et al. (2023) 
-    <arXiv:2305.12279>.  
+Description: Implementation of the SAM prior and generation of its
+     operating characteristics for dynamically borrowing information
+     from historical data. For details, please refer to Yang et al. (2023)
+     <arXiv:2305.12279>. 
 Depends: 
     RBesT,
     assertthat,
