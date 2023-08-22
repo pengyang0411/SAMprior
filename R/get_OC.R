@@ -1,9 +1,9 @@
 #' Generating Operating Characteristics of SAM Priors
 #'
 #' The \code{get_OC} function is designed to generate the operating
-#' characteristics of SAM priors (\emph{Yang, et al., 2023}), including
-#' the relative bias, relative mean squared error, and type I error and
-#' power under a two-arm comparative trial design. As an option, the operating
+#' characteristics of SAM priors (\emph{Yang, et al., 2023}), including the
+#' relative bias, relative mean squared error, and type I error and power
+#' under a two-arm comparative trial design. As an option, the operating
 #' characteristic of robust MAP priors (\emph{Schmidli, et al., 2014})
 #' can also be generated for comparison.
 #'
@@ -77,24 +77,24 @@
 #' ## if Pr(RR.t > RR.c | data) > 0.95, where RR.t and RR.c are response rates
 #' ##  of the treatment and control, respectively. The operating characteristics
 #' ##  were assessed under the scenarios of (RR.c, RR.t) = (0.3, 0.36) and (0.3, 0.56).
-#' OC <- get_OC(## Informative prior constructed based on historical data
-#'              if.prior = mixbeta(c(1, 30, 50)),
-#'              ## Non-informative prior used for constructing the SAM prior
-#'              nf.prior = mixbeta(c(1,1,1)),
-#'              delta    = 0.2,  ## Clinically significant difference
-#'              n = 35,          ## Sample size for the control arm
-#'              n.t = 70,        ## Sample size for the treatment arm
-#'              ## Decision rule to compare the whether treatment is superior
-#'              ## than the control
-#'              decision = decision2S(0.95, 0, lower.tail=FALSE),
-#'              ntrial   = 300,  ## Number of trials simulated
-#'              ## Weight assigned to the informative component for MAP prior
-#'              weight = 0.5,
-#'              ## A vector of response rate for the control arm
-#'              theta    = c(0.3, 0.36),
-#'              ## A vector of response rate for the treatment arm
-#'              theta.t  = c(0.3, 0.56))
-#' OC
+#' ## OC <- get_OC(## Informative prior constructed based on historical data
+#' ##              if.prior = mixbeta(c(1, 30, 50)),
+#' ##              ## Non-informative prior used for constructing the SAM prior
+#' ##              nf.prior = mixbeta(c(1,1,1)),
+#' ##              delta    = 0.2,  ## Clinically significant difference
+#' ##              n = 35,          ## Sample size for the control arm
+#' ##              n.t = 70,        ## Sample size for the treatment arm
+#' ##              ## Decision rule to compare the whether treatment is superior
+#' ##              ## than the control
+#' ##              decision = decision2S(0.95, 0, lower.tail=FALSE),
+#' ##              ntrial   = 1000,  ## Number of trials simulated
+#' ##              ## Weight assigned to the informative component for MAP prior
+#' ##              weight = 0.5,
+#' ##              ## A vector of response rate for the control arm
+#' ##              theta    = c(0.3, 0.36),
+#' ##              ## A vector of response rate for the treatment arm
+#' ##              theta.t  = c(0.3, 0.56))
+#' ## OC
 #'
 #' ## Example of continuous endpoint
 #' ## Consider a randomized comparative trial designed to borrow information
@@ -108,23 +108,23 @@
 #' sigma      <- 2
 #' prior.mean <- 0.5
 #' prior.se   <- sigma/sqrt(100)
-#' OC <- get_OC(## Informative prior constructed based on historical data
-#'              if.prior = mixnorm(c(1, prior.mean, prior.se)),
-#'              ## Non-informative prior used for constructing the SAM prior
-#'              nf.prior = mixnorm(c(1, 0, 1e4)),
-#'              delta    = 0.2 * sigma,  ## Clinically significant difference
-#'              n = 100,                 ## Sample size for the control arm
-#'              n.t = 200,               ## Sample size for the treatment arm
-#'              ## Decision rule to compare the whether treatment is superior
-#'              ## than the control
-#'              decision = decision2S(0.95, 0, lower.tail=FALSE),
-#'              ntrial   = 300,  ## Number of trials simulated
-#'              ## A vector of mean for the control arm
-#'              theta    = c(0.1, 0.5),
-#'              ## A vector of mean for the treatment arm
-#'              theta.t  = c(0.1, 1.0),
-#'              sigma = sigma)
-#' OC
+#' ## OC <- get_OC(## Informative prior constructed based on historical data
+#' ##              if.prior = mixnorm(c(1, prior.mean, prior.se)),
+#' ##              ## Non-informative prior used for constructing the SAM prior
+#' ##              nf.prior = mixnorm(c(1, 0, 1e4)),
+#' ##              delta    = 0.2 * sigma,  ## Clinically significant difference
+#' ##              n = 100,                 ## Sample size for the control arm
+#' ##              n.t = 200,               ## Sample size for the treatment arm
+#' ##              ## Decision rule to compare the whether treatment is superior
+#' ##              ## than the control
+#' ##              decision = decision2S(0.95, 0, lower.tail=FALSE),
+#' ##              ntrial   = 1000,  ## Number of trials simulated
+#' ##              ## A vector of mean for the control arm
+#' ##              theta    = c(0.1, 0.5),
+#' ##              ## A vector of mean for the treatment arm
+#' ##              theta.t  = c(0.1, 1.0),
+#' ##              sigma = sigma)
+#' ## OC
 #'
 #' @import Metrics
 #' @import RBesT
