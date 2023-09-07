@@ -208,8 +208,8 @@ SAM_weight.default <- function(if.prior, theta.h, method.w, prior.odds, data, de
 #' data (i.e., a vector of 0 and 1 representing the response status of each
 #' patient) or summary statistics (i.e., the number of patients and the number
 #' of responses).
-#' @param n Number of subjects in the control arm.
-#' @param r Number of responses in the control arm.
+#' @param n Number of subjects in the control arm for binary endpoint.
+#' @param r Number of responses in the control arm for binary endpoint.
 #' @export
 SAM_weight.betaMix <- function(if.prior, theta.h, method.w, prior.odds, data, delta, n, r, ...) {
   if(!missing(data)) {
@@ -251,25 +251,37 @@ SAM_weight.betaMix <- function(if.prior, theta.h, method.w, prior.odds, data, de
   ## SAM weight
   w = 1 / (1 + R)
 
-
-
   return(w)
 }
 
 
 #' @describeIn SAM_weight The function calculates the mixture weight of SAM
 #' priors for normal mixture distribution. The input \code{data} should be
-#' a vector of patient-level observations.
+#' a vector of patient-level observations. The input \code{data} can be
+#' patient-level data (i.e., a vector of continuous response of each
+#' patient) or summary statistics (i.e., the mean estimate, number of subjects,
+#' and the standard deviation in the control arm).
+#' @param m Mean estimate in the control arm for continuous endpoint.
+#' @param n Number of subjects in the control arm for continuous endpoint.
+#' @param sigma Standard deviation in the control arm for continuous endpoint.
 #' @export
-SAM_weight.normMix <- function(if.prior, theta.h, method.w, prior.odds, data, delta, ...) {
+SAM_weight.normMix <- function(if.prior, theta.h, method.w, prior.odds, data, delta, m, n, sigma, ...) {
+
   if(!missing(data)) {
     m <- mean(data)
     n <- length(data)
-    se <- sd(data)
-  } else {
-    if(missing(data)){
-      stop("Individual data must be given.")
+    if(n == 1 & missing(sigma)){
+      stop("Standard deviation in the control arm must be given.")
+    }else if(n > 1 & missing(sigma)){
+        sigma <- sd(data)
     }
+    ## Try to see if the summary data is provided
+    if_summary <- FALSE
+  } else {
+    # if(missing(data)){
+    #   stop("Individual data must be given.")
+    # }
+    if_summary = TRUE
   }
 
   if(!missing(method.w)){
@@ -296,9 +308,17 @@ SAM_weight.normMix <- function(if.prior, theta.h, method.w, prior.odds, data, de
   theta_h_hat <- theta.h
 
   ## Calculate the weight for SAM prior
-  R1 <- sum(dnorm(data, mean = theta_h_hat - delta, se, log = T) - dnorm(data, mean = theta_h_hat, se, log = T))
-  R2 <- sum(dnorm(data, mean = theta_h_hat + delta, se, log = T) - dnorm(data, mean = theta_h_hat, se, log = T))
-  R  <- exp(max(R1, R2))
+  if(!if_summary){
+    ## Based on individual data
+    R1 <- sum(dnorm(data, mean = theta_h_hat - delta, sigma, log = T) - dnorm(data, mean = theta_h_hat, sigma, log = T))
+    R2 <- sum(dnorm(data, mean = theta_h_hat + delta, sigma, log = T) - dnorm(data, mean = theta_h_hat, sigma, log = T))
+    R  <- exp(max(R1, R2))
+  }else{
+    ## Based on summary data
+    R1 <- -1/2 * ( (n*delta * (delta - 2 * m + 2 * theta_h_hat) ) / sigma^2 )
+    R2 <- -1/2 * ( (n*delta * (delta + 2 * m - 2 * theta_h_hat) ) / sigma^2 )
+    R  <- 1/exp(-max(R1, R2))
+  }
 
   if(method.w  == 'PPR') R = R / prior.odds
 
@@ -316,8 +336,8 @@ SAM_weight.normMix <- function(if.prior, theta.h, method.w, prior.odds, data, de
 #' indicator and the second row recording the observed time) or summary
 #' statistics (i.e., the number of uncensored observations \code{u} and
 #' total observed time \code{w}).
-#' @param u Number of events.
-#' @param w Total observed time.
+#' @param u Number of events in the control arm for time-to-event endpoint.
+#' @param w Total observed time in the control arm for time-to-event endpoint.
 #' @export
 SAM_weight.gammaMix <- function(if.prior, theta.h, method.w, prior.odds, data, delta, u, w, ...) {
   if(!missing(data)) {

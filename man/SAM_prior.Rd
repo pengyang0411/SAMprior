@@ -28,7 +28,7 @@ represented (approximately) as a mixture of conjugate distributions.}
 \item{...}{Additional parameters required for different endpoints.}
 
 \item{sigma}{Variance used for constructing the non-informative prior for
-normality endpoints.}
+continuous endpoints.}
 }
 \value{
 Displays the SAM prior as a mixture of an informative prior

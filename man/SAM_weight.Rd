@@ -11,7 +11,18 @@ SAM_weight(if.prior, theta.h, method.w, prior.odds, data, delta, ...)
 
 \method{SAM_weight}{betaMix}(if.prior, theta.h, method.w, prior.odds, data, delta, n, r, ...)
 
-\method{SAM_weight}{normMix}(if.prior, theta.h, method.w, prior.odds, data, delta, ...)
+\method{SAM_weight}{normMix}(
+  if.prior,
+  theta.h,
+  method.w,
+  prior.odds,
+  data,
+  delta,
+  m,
+  n,
+  sigma,
+  ...
+)
 
 \method{SAM_weight}{gammaMix}(if.prior, theta.h, method.w, prior.odds, data, delta, u, w, ...)
 }
@@ -38,13 +49,17 @@ section for more details.}
 
 \item{...}{Additional parameters required for different endpoints.}
 
-\item{n}{Number of subjects in the control arm.}
+\item{n}{Number of subjects in the control arm for continuous endpoint.}
 
-\item{r}{Number of responses in the control arm.}
+\item{r}{Number of responses in the control arm for binary endpoint.}
 
-\item{u}{Number of events.}
+\item{m}{Mean estimate in the control arm for continuous endpoint.}
 
-\item{w}{Total observed time.}
+\item{sigma}{Standard deviation in the control arm for continuous endpoint.}
+
+\item{u}{Number of events in the control arm for time-to-event endpoint.}
+
+\item{w}{Total observed time in the control arm for time-to-event endpoint.}
 }
 \value{
 The mixture weight of the SAM priors.
@@ -115,7 +130,10 @@ of responses).
 
 \item \code{SAM_weight(normMix)}: The function calculates the mixture weight of SAM
 priors for normal mixture distribution. The input \code{data} should be
-a vector of patient-level observations.
+a vector of patient-level observations. The input \code{data} can be
+patient-level data (i.e., a vector of continuous response of each
+patient) or summary statistics (i.e., the mean estimate, number of subjects,
+and the standard deviation in the control arm).
 
 \item \code{SAM_weight(gammaMix)}: The function calculates the mixture weight of SAM
 priors for gamma mixture distribution. The input \code{data} can be

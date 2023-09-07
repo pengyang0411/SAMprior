@@ -277,7 +277,7 @@ get_OC.betaMix <- function(if.prior, theta.h, method.w, prior.odds, nf.prior, de
 
       res_SAM_tmp <- c(res_SAM_tmp, decision(post_theta_t, SAM.post))
       res_Mix_tmp <- c(res_Mix_tmp, decision(post_theta_t, posterior.Mix))
-      res_Non_tmp <- c(res_Mix_tmp, decision(post_theta_t, post_theta_c))
+      res_Non_tmp <- c(res_Non_tmp, decision(post_theta_t, post_theta_c))
 
     }
 

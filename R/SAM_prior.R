@@ -178,7 +178,7 @@ SAM_prior.gammaMix <- function(if.prior, nf.prior, weight, ...) {
 #' \code{mixnorm(c(1,summary(if.prior)['mean'], sigma))} which represents a
 #' unit-information prior.
 #' @param sigma Variance used for constructing the non-informative prior for
-#' normality endpoints.
+#' continuous endpoints.
 #' @export
 SAM_prior.normMix <- function(if.prior, nf.prior, weight, ..., sigma) {
   checkmate::assert_number(weight, lower=0, upper=1)
