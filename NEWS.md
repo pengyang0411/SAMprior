@@ -1,3 +1,6 @@
+# SAMprior 1.1.1
+* Added the publication reference.
+
 # SAMprior 1.1.0
 
 * Added a `NEWS.md` file to track changes to the package.
