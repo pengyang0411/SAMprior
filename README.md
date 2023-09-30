@@ -257,7 +257,7 @@ Peng Yang ([py11@rice.edu](mailto:py11@rice))
 
 ## Citation
 
-\[1\] Yang P. et al., *Arxiv*, <https://arxiv.org/abs/2305.12279>.  
-\[2\] Schmidli H. et al., *Biometrics* 2014;70(4):1023-1032.  
-\[3\] Baeten D. et al., *The Lancet*, 2013, (382), 9906, p 1705.  
-\[4\] Neuenschwander B. et al., *Clin Trials*. 2010; 7(1):5-18.
+\[1\] Yang P. et al., *Biometrics*, 2023; 00, 1–12. https://doi.org/10.1111/biom.13927 \ 
+\[2\] Schmidli H. et al., *Biometrics*, 2014; 70(4):1023-1032.  
+\[3\] Baeten D. et al., *The Lancet*, 2013; (382), 9906, p 1705.  
+\[4\] Neuenschwander B. et al., *Clin Trials*, 2010; 7(1):5-18.

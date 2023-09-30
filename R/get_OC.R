@@ -60,11 +60,12 @@
 #' Additionally, the mixture weight of the SAM prior is also displayed.
 #'
 #' @references Yang P, Zhao Y, Nie L, Vallejo J, Yuan Y.
-#' SAM: Self-adapting mixture prior to dynamically borrow information from historical data in clinical trials.
-#' https://arxiv.org/abs/2305.12279.
+#' SAM: Self-adapting mixture prior to dynamically borrow information from
+#' historical data in clinical trials. \emph{Biometrics} 2023; 00, 1–12.
+#' https://doi.org/10.1111/biom.13927
 #' @references Schmidli H, Gsteiger S, Roychoudhury S, O'Hagan A, Spiegelhalter D, Neuenschwander B.
 #' Robust meta-analytic-predictive priors in clinical trials with historical control information.
-#' \emph{Biometrics} 2014;70(4):1023-1032.
+#' \emph{Biometrics} 2014; 70(4):1023-1032.
 #'
 #'
 #' @examples
