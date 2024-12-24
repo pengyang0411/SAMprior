@@ -159,7 +159,7 @@ This function aims to calculate informative priors using historical
  is given by
  \deqn{\alpha_i^{*} = G_i + (1 - G_i)\frac{G_i}{\sum{\alpha_i} / n_h^{*}}.}
 
- For binary endpoint \eqn{Y \sim \text{Bin}(\theta)}, the informative
+ For binary endpoint \eqn{Y \sim Ber(\theta)}, the informative
  prior \eqn{\pi_1(\theta)} can be constructed as follows,
  \deqn{\pi_1(\theta) \propto L(\theta | D_h, \alpha^{*}) \pi_0(\theta)
   = Beta(a + \sum \alpha_i^{*}y_i, b + n_h^* - \sum \alpha_i^{*}y_i )\},}

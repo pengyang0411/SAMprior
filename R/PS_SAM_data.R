@@ -30,18 +30,18 @@
 #'
 #' Covariates for the control arm were generated from
 #'
-#' \deqn{X_1 \sim \text{Ber}(0.5), ~~ X_2 \sim N(0, 1), ~~ X_3 \sim N(0.5, 1),}
+#' \deqn{X_1 \sim Ber(0.5), ~~ X_2 \sim N(0, 1), ~~ X_3 \sim N(0.5, 1),}
 #'
-#' where \eqn{\text{Ber}(\cdot)} stands for Bernoulli distribution. Covariates for the
+#' where \eqn{Ber(\cdot)} stands for Bernoulli distribution. Covariates for the
 #' historical controls were generated from a mixture distribution, with half
 #' were generated the same as for the control arm, while the other half were
 #' drawn from
 #'
-#' \deqn{X_1 \sim \text{Ber}(0.8), ~~ X_2 \sim N(-0.4, 1), ~~ X_3 \sim N(-0.2, 1).}
+#' \deqn{X_1 \sim Ber(0.8), ~~ X_2 \sim N(-0.4, 1), ~~ X_3 \sim N(-0.2, 1).}
 #'
 #' For the binary endpoint, \eqn{y_i} were generated from the logit model:
 #'
-#' \deqn{\text{logit}(\Pr(y_i = 1 | X_{1i}, X_{2i}, X_{3i}, A_i)) = -1.4 - 0.5
+#' \deqn{logit(\Pr(y_i = 1 | X_{1i}, X_{2i}, X_{3i}, A_i)) = -1.4 - 0.5
 #' X_{1i} + X_{2i} + 2 X_{3i} + \lambda A_i,}
 #'
 #' where \eqn{\lambda} is the treatment effect size, and we let \eqn{\lambda = 0.9}
