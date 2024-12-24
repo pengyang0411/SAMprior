@@ -1,7 +1,7 @@
 Package: SAMprior
 Type: Package
 Title: Self-Adapting Mixture (SAM) Priors 
-Version: 1.1.1
+Version: 1.2.1
 Authors@R: c(person(given = "Peng", family = "Yang", email = "py11@rice.edu", 
                     role = c("aut", "cre"),
                     comment = c(ORCID = "0000-0002-0630-9506")), 
@@ -15,9 +15,11 @@ Description: Implementation of the SAM prior and generation of its
      <doi:10.1111/biom.13927>. 
 Depends: 
     RBesT,
+    MatchIt
+Imports:
+    Metrics,
     assertthat,
     checkmate,
-    Metrics,
     ggplot2
 Suggests:
     rmarkdown,
@@ -35,4 +37,4 @@ VignetteBuilder: knitr
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1

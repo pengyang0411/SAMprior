@@ -42,3 +42,4 @@ support.betaMix <- function(mix) mixlink(mix, c(0,1))
 support.gammaMix <- function(mix) mixlink(mix, c(0,Inf))
 #' @export
 support.normMix <- function(mix) mixlink(mix, c(-Inf,Inf))
+

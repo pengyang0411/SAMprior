@@ -1,5 +1,9 @@
+# SAMprior 1.2.3
+* Added `PS_prior()` function to calculate the Propensity Score-Integrated informative priors.
+* Added `PS_SAM_data` to demonstrate the construction of the Propensity Score-Integrated SAM priors.
+
 # SAMprior 1.1.1
-* Added the publication reference.
+* Updated the publication reference.
 
 # SAMprior 1.1.0
 

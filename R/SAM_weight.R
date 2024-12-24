@@ -74,8 +74,7 @@
 #'
 #' @references Yang P, Zhao Y, Nie L, Vallejo J, Yuan Y.
 #' SAM: Self-adapting mixture prior to dynamically borrow information from
-#' historical data in clinical trials. \emph{Biometrics} 2023; 00, 1–12.
-#' https://doi.org/10.1111/biom.13927
+#' historical data in clinical trials. \emph{Biometrics} 2023; 79(4), 2857-2868.
 #'
 #' @examples
 #' set.seed(123)
