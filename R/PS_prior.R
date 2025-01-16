@@ -16,13 +16,13 @@
 #' @param treat The variable name of the treatment indicator.
 #' @param method The matching method to be used. The allowed methods are
 #' \code{"nearest"} for nearest neighbor matching (on
-#' the propensity score by default), \code{"optimal"} [\code{\link{method_optimal}}]
-#' for optimal pair matching, \code{"full"} [\code{\link{method_full}}] for optimal
-#' full matching, \code{"genetic"} [\code{\link{method_genetic}}] for genetic
-#' matching, \code{"cem"} [\code{\link{method_cem}}] for coarsened exact matching,
-#' \code{"exact"} [\code{\link{method_exact}}] for exact matching,
-#' \code{"cardinality"} [\code{\link{method_cardinality}}] for cardinality and
-#' template matching, and \code{"subclass"} [\code{\link{method_subclass}}] for
+#' the propensity score by default), \code{"optimal"} [\link[MatchIt]{method_optimal}]
+#' for optimal pair matching, \code{"full"} [\link[MatchIt]{method_full}] for optimal
+#' full matching, \code{"genetic"} [\link[MatchIt]{method_genetic}] for genetic
+#' matching, \code{"cem"} [\link[MatchIt]{method_cem}] for coarsened exact matching,
+#' \code{"exact"} [\link[MatchIt]{method_exact}] for exact matching,
+#' \code{"cardinality"} [\link[MatchIt]{method_cardinality}] for cardinality and
+#' template matching, and \code{"subclass"} [\link[MatchIt]{method_subclass}] for
 #' subclassification. When set to \code{"NULL"}, no matching will occur, but
 #' propensity score estimation and common support restrictions will still occur
 #' if requested. See the linked pages for each method for more details on what
@@ -32,7 +32,7 @@
 #' method of estimating propensity scores (e.g., \code{"glm"}), the name of a
 #' method of computing a distance matrix from the covariates (e.g.,
 #' \code{"mahalanobis"}), a vector of already-computed distance measures, or a
-#' matrix of pairwise distances. See [\code{\link{distance}}] for allowable
+#' matrix of pairwise distances. See [\link[MatchIt]{distance}] for allowable
 #' options. The default is \code{"glm"} for propensity scores estimated with
 #' logistic regression using \code{glm()}. Ignored for some methods; see individual
 #' methods pages for information on whether and how the distance measure is
@@ -58,7 +58,7 @@
 #'  historical control study. Given the covariates data \eqn{X}, the propensity
 #'  score is defined as follows,
 #'  \deqn{e(X) = \Pr(G = 1 | X),}
-#'  where \code{\link{distance}} allows different methods to estimate the
+#'  where \link[MatchIt]{distance} allows different methods to estimate the
 #'  propensity scores.
 #'
 #'  Calculate informative prior through PS matching is to identify a subset of
@@ -109,7 +109,7 @@
 #' propensity-score-integrated self-adapting mixture prior to dynamically
 #' borrow information from historical data.
 #'
-#' @seealso \code{\link{matchit}}
+#' @seealso \link[MatchIt]{matchit}
 #'
 #' @examples
 #' ## Load example data
