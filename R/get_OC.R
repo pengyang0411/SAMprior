@@ -25,7 +25,7 @@
 #' @param n Sample size for the control arm.
 #' @param n.t Sample size for the treatment arm.
 #' @param decision Decision rule to compare the treatment with the control;
-#' see \code{\link{decision2S}}.
+#' see \code{\link[RBesT]{decision2S}}.
 #' @param ntrial Number of trials simulated.
 #' @param if.MAP Whether to simulate the operating characteristics of the
 #' robust MAP prior for comparison, the default value is \code{FALSE}.
@@ -52,7 +52,7 @@
 #'
 #' To evaluate type I error and power, the determination of whether the
 #' treatment is superior to the control is calculated based on function
-#'  \code{\link{decision2S}}.
+#'  \code{\link[RBesT]{decision2S}}.
 #'
 #'
 #' @return Returns dataframe that contains the relative bias, relative MSE,

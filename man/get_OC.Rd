@@ -88,7 +88,7 @@ and robust MAP prior.}
 \item{n.t}{Sample size for the treatment arm.}
 
 \item{decision}{Decision rule to compare the treatment with the control;
-see \code{\link{decision2S}}.}
+see \code{\link[RBesT]{decision2S}}.}
 
 \item{ntrial}{Number of trials simulated.}
 
@@ -138,7 +138,7 @@ the MES of using a non-informative prior.
 
 To evaluate type I error and power, the determination of whether the
 treatment is superior to the control is calculated based on function
- \code{\link{decision2S}}.
+ \code{\link[RBesT]{decision2S}}.
 }
 \section{Methods (by class)}{
 \itemize{
