@@ -90,19 +90,27 @@ map_automix
     ## Univariate beta mixture
     ## Mixture Components:
     ##   comp1      comp2     
-    ## w  0.6347378  0.3652622
-    ## a 42.5096289  7.1944564
-    ## b 77.2075968 12.3741335
+    ## w  0.6347368  0.3652632
+    ## a 42.5096368  7.1944649
+    ## b 77.2076132 12.3741486
 
 ``` r
 plot(map_automix)$mix
 ```
 
+    ## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+    ## ℹ Please use `linewidth` instead.
+    ## ℹ The deprecated feature was likely used in the RBesT package.
+    ##   Please report the issue at <https://github.com/Novartis/RBesT/issues>.
+    ## This warning is displayed once every 8 hours.
+    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+    ## generated.
+
 ![](README_files/figure-markdown_github/unnamed-chunk-2-1.png)
 
 The resulting MAP prior is approximated by a mixture of conjugate
 priors, given by
-*π*<sub>1</sub>(*θ*) = 0.63*B**e**t**a*(42.5,77.2) + 0.37*B**e**t**a*(7.2,12.4),
+*π*<sub>1</sub>(*θ*) = 0.63*B**e**t**a*(42.5, 77.2) + 0.37*B**e**t**a*(7.2, 12.4),
 with *θ̂*<sub>*h*</sub> ≈ 0.36.
 
 #### SAM Weight Determination
@@ -110,7 +118,7 @@ with *θ̂*<sub>*h*</sub> ≈ 0.36.
 Let *θ* and *θ*<sub>*h*</sub> denote the treatment effects associated
 with the current arm data *D* and historical *D*<sub>*h*</sub>,
 respectively. Let *δ* denote the clinically significant difference such
-that is \|*θ*<sub>*h*</sub>−*θ*\| ≥ *δ*, then *θ*<sub>*h*</sub> is
+that is \|*θ*<sub>*h*</sub> − *θ*\| ≥ *δ*, then *θ*<sub>*h*</sub> is
 regarded as clinically distinct from *θ*, and it is therefore
 inappropriate to borrow any information from *D*<sub>*h*</sub>. Consider
 two hypotheses:
@@ -128,7 +136,7 @@ quantify the degree of prior-data conflict and determine the extent of
 information borrowing.
 
 $$
-R = \frac{P(D \| H_0, \theta_h)}{P(D \| H_1, \theta_h)} = \frac{P(D \| \theta = \theta_h)}{\max \\{ P(D \| \theta = \theta_h + \delta), P(D \| \theta = \theta_h - \delta) \\}} ,
+R = \frac{P(D \| H_0, \theta_h)}{P(D \| H_1, \theta_h)} = \frac{P(D \| \theta = \theta_h)}{\max \\ P(D \| \theta = \theta_h + \delta), P(D \| \theta = \theta_h - \delta) \\} ,
 $$
 
 where *P*(*D*\|⋅) denotes the likelihood function. An alternative
@@ -147,7 +155,7 @@ as a mixture of an informative prior *π*<sub>1</sub>(*θ*), constructed
 based on *D*<sub>*h*</sub>, with a non-informative prior
 *π*<sub>0</sub>(*θ*):
 
-*π*<sub>*s**a**m*</sub>(*θ*) = *w**π*<sub>1</sub>(*θ*) + (1−*w*)*π*<sub>0</sub>(*θ*),
+*π*<sub>*s**a**m*</sub>(*θ*) = *w**π*<sub>1</sub>(*θ*) + (1 − *w*)*π*<sub>0</sub>(*θ*),
 
 where the mixture weight *w* is calculated as:
 
@@ -168,13 +176,13 @@ then we can apply function **`SAM_weight`** in SAMprior as follows:
 
 ``` r
 n <- 35; r = 10 
-wSAM <- SAM_weight(if.prior = map_automix, 
-                   delta = 0.2,
-                   n = n, r = r)
-cat('SAM weight: ', wSAM)
+wSAM_LRT <- SAM_weight(if.prior = map_automix, 
+                       delta = 0.2,
+                       n = n, r = r)
+cat('SAM weight: ', wSAM_LRT)
 ```
 
-    ## SAM weight:  0.7900602
+    ## SAM weight:  0.7900601
 
 The default method to calculate *w* is using LRT, which is fully
 data-driven. However, if investigators want to incorporate prior
@@ -182,15 +190,15 @@ information on prior-data conflict to determine the mixture weight *w*,
 this can be achieved by using PPR method as follows:
 
 ``` r
-wSAM <- SAM_weight(if.prior = map_automix, 
-                   delta = 0.2,
-                   method.w = 'PPR',
-                   prior.odds = 3/7,
-                   n = n, r = r)
-cat('SAM weight: ', wSAM)
+wSAM_PPR <- SAM_weight(if.prior = map_automix, 
+                       delta = 0.2,
+                       method.w = 'PPR',
+                       prior.odds = 3/7,
+                       n = n, r = r)
+cat('SAM weight: ', wSAM_PPR)
 ```
 
-    ## SAM weight:  0.6172732
+    ## SAM weight:  0.6172731
 
 The **`prior.odds`** indicates the prior probability of *H*<sub>0</sub>
 over the prior probability of *H*<sub>1</sub>. In this case (e.g.,
@@ -215,32 +223,62 @@ follows:
 ``` r
 SAM.prior <- SAM_prior(if.prior = map_automix, 
                        nf.prior = mixbeta(nf.prior = c(1,1,1)),
-                       weight = wSAM)
+                       weight = wSAM_LRT)
 SAM.prior
 ```
 
     ## Univariate beta mixture
     ## Mixture Components:
     ##   comp1      comp2      nf.prior  
-    ## w  0.3918066  0.2254666  0.3827268
-    ## a 42.5096289  7.1944564  1.0000000
-    ## b 77.2075968 12.3741335  1.0000000
+    ## w  0.5014803  0.2885799  0.2099399
+    ## a 42.5096368  7.1944649  1.0000000
+    ## b 77.2076132 12.3741486  1.0000000
 
 where the non-informative prior *π*<sub>0</sub>(*θ*) follows a uniform
 distribution.
 
 #### Decision Making
 
-Finally, we present an example of how to make a final decision on
-whether the treatment is superior or inferior to a standard control once
-the trial has been completed and data has been collected. This step can
-be accomplished using the **`postmix`** function from RBesT, as shown
-below:
+Finally, we present an example showing how to calibrate the posterior
+probability cutoff and make a final decision on whether the treatment is
+superior or inferior to a standard control after the trial has been
+completed and the data have been collected.
+
+The calibration step aims to identify the posterior probability cutoff
+*C* such that the type I error is controlled at a prespecified level.
+For superiority, this is based on the posterior decision rule
+Pr (*θ*<sub>*t*</sub> − *θ* \> *Δ* ∣ *D*) \> *C*,
+where *Δ* is the clinical margin, which is often 0.
+
+This calibration can be carried out using the
+**`calibrate_cutoff_2arm`** function, as illustrated below:
 
 ``` r
 ## Sample size and number of responses for treatment arm
 n_t <- 70; x_t <- 22 
+## Calibrate the posterior probability cutoff 
+PPC <- calibrate_cutoff_2arm(if.prior = map_automix,        ## MAP prior from historical data
+                             nf.prior = mixbeta(c(1,1,1)),  ## Non-informative prior for SAM prior
+                             prior.t = mixbeta(c(1,1,1)),   ## Non-informative prior for treatment arm
+                             target = 0.05,                 ## Targeted Type I error rate
+                             n.t = n_t, n = n,              ## Sample size for treatment and control arms, respectively
+                             theta.t = summary(map_automix)['mean'],  ## The true effect for treatment arm
+                             theta = summary(map_automix)['mean'],    ## The true effect for control arm
+                             ## Method to determine the mixture weight for the SAM prior
+                             method = 'SAM',    ## Method 
+                             delta = 0.2,       ## CSD for SAM prior
+                             ## Trial settings
+                             alternative = "greater", ## Direction of the posterior decision. Must be one of "greater" or "less".
+                             margin = 0.     ## Clinical margin.
+                             )
+```
 
+To make the final decision using the calibrated posterior probability
+cutoff *C*, we can compute the posterior distribution based on the
+observed trial data. This can be accomplished using the **`postmix`**
+function from RBesT, as shown below:
+
+``` r
 ## first obtain posterior distributions...
 post_SAM <- postmix(priormix = SAM.prior,         ## SAM Prior
                     r = r,   n = n)
@@ -248,7 +286,7 @@ post_trt <- postmix(priormix = mixbeta(c(1,1,1)), ## Non-informative prior
                     r = x_t, n = n_t)
 
 ## Define the decision function
-decision = decision2S(0.95, 0, lower.tail=FALSE)
+decision = decision2S(PPC$cutoff, 0, lower.tail=FALSE)
 
 ## Decision-making
 decision(post_trt, post_SAM)
@@ -258,7 +296,7 @@ decision(post_trt, post_SAM)
 
 ## Maintainer information
 
-Peng Yang ([py11@rice.edu](mailto:py11@rice))
+Peng Yang (<pyang7@mdanderson.org>)
 
 ## Citation
 

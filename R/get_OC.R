@@ -1,17 +1,21 @@
-#' Generating Operating Characteristics of SAM Priors
+#' Generating Operating Characteristics of SAM Priors Using Analytical Engines
 #'
-#' The \code{get_OC} function is designed to generate the operating
-#' characteristics of SAM priors (\emph{Yang, et al., 2023}), including the
-#' relative bias, relative mean squared error, and type I error and power
-#' under a two-arm comparative trial design. As an option, the operating
-#' characteristic of robust MAP priors (\emph{Schmidli, et al., 2014})
-#' can also be generated for comparison.
+#' The \code{get_OC} function generates operating characteristics of SAM
+#' priors using the analytical operating characteristic engines for two-arm
+#' trials with binary or continuous endpoints. As an option, the operating
+#' characteristics of robust MAP priors can also be generated for comparison.
+#'
+#' Compared with the original simulation-based implementation, this function
+#' does not rely on trial simulation. Instead, it first calibrates the
+#' posterior probability cutoff for each borrowing method to achieve the
+#' target type I error, and then evaluates operating characteristics
+#' analytically across the requested scenarios.
 #'
 #' @param if.prior Informative prior constructed from historical data,
 #' represented (approximately) as a mixture of conjugate distributions.
 #' @param theta.h Estimate of the treatment effect based on historical data.
-#' If missing, the default value is set to be the posterior mean estimate from
-#' \code{if.prior}.
+#' Included for interface compatibility. If missing, the default value is set
+#' to the posterior mean estimate from \code{if.prior}.
 #' @param method.w Methods used to determine the mixture weight for SAM priors.
 #' The default method is LRT (Likelihood Ratio Test), the alternative option can
 #' be PPR (Posterior Probability Ratio). See \code{\link{SAM_weight}} for more
@@ -19,507 +23,584 @@
 #' @param prior.odds The prior probability of \eqn{H_0} being true compared to
 #' the prior probability of \eqn{H_1} being true using PPR method. The default
 #' value is 1. See \code{\link{SAM_weight}} for more details.
-#' @param nf.prior Non-informative prior used for constructing the SAM prior
-#' and robust MAP prior.
+#' @param nf.prior Non-informative prior used as the robustifying component
+#' for the control arm prior.
+#' @param prior.t Prior used for the treatment arm. If missing, the default
+#' value is set to be \code{nf.prior}.
 #' @param delta Clinically significant difference used for the SAM prior.
 #' @param n Sample size for the control arm.
 #' @param n.t Sample size for the treatment arm.
-#' @param decision Decision rule to compare the treatment with the control;
-#' see \code{\link[RBesT]{decision2S}}.
-#' @param ntrial Number of trials simulated.
-#' @param if.MAP Whether to simulate the operating characteristics of the
-#' robust MAP prior for comparison, the default value is \code{FALSE}.
-#' @param weight Weight assigned to the informative prior component
-#' (\eqn{0 \leq} \code{weight} \eqn{\leq 1}) for the robust MAP prior,
-#' the default value is 0.5.
+#' @param target Target type I error used to calibrate the posterior probability
+#' cutoff for each method. The default value is typically 0.05.
+#' @param if.rMAP Whether to evaluate the operating characteristics of the
+#' robust MAP prior for comparison. The default value is \code{FALSE}.
+#' @param weight.rMAP Weight assigned to the informative prior component
+#' (\eqn{0 \le} \code{weight.rMAP} \eqn{\le 1}) for the robust MAP prior.
 #' @param theta A vector of the response rate (binary endpoints) or mean
 #' (continuous endpoints) for the control arm.
 #' @param theta.t A vector of the response rate (binary endpoints) or mean
 #' (continuous endpoints) for the treatment arm.
-#' @param ... Additional parameters for continuous endpoints.
+#' @param alternative Direction of the posterior decision. Must be one of
+#' \code{"greater"} (for superiority) or \code{"less"} (for inferiority).
+#' @param margin Clinical margin. Must be a non-negative scalar. The default
+#' value is \code{0}.
+#' @param rel.tol Tolerance passed to numerical root finding.
+#' @param oc_rel.tol Relative tolerance passed to operating characteristic
+#' evaluation.
+#' @param interval Search interval for the posterior probability cutoff.
+#' @param n_sd_int Half-width of the numerical integration region for each arm,
+#' expressed as a multiple of the corresponding standard error. Used for
+#' continuous endpoints only.
+#' @param ... Additional parameters. For continuous endpoints, this includes
+#' \code{sigma}.
 #'
-#' @details The \code{get_OC} function is designed to generate the operating
-#' characteristics of SAM priors, including the relative bias, relative
-#' mean squared error, and type I error, and power under a two-arm
-#' comparative trial design. As an option, the operating characteristics of
-#' robust MAP priors (\emph{Schmidli, et al., 2014}) can also be generated for
-#' comparison.
+#' @details
+#' For each borrowing method, the function first calibrates the posterior
+#' probability cutoff so that the repeated-sampling rejection probability under
+#' the boundary null scenario equals the target type I error \code{target}.
+#' Specifically, calibration is based on the first value of \code{theta}. Let
+#' \eqn{\theta = \code{theta}[1]} denote the control-arm parameter under the
+#' calibration scenario. Then the treatment-arm parameter is set to
+#' \eqn{\theta_t = \theta + margin} when \code{alternative = "greater"}, and
+#' to \eqn{\theta_t = \theta - margin} when \code{alternative = "less"}.
+#' Thus, when \code{margin = 0}, calibration is performed under the null
+#' scenario \eqn{\theta_t = \theta}, corresponding to no treatment effect
+#' difference between the treatment and control arms. After the cutoff is
+#' calibrated, the function evaluates the operating characteristics across all
+#' requested scenarios using the analytical two-arm engines.
 #'
-#' The relative bias is defined as the difference between the bias of a method
-#' and the bias of using a non-informative prior. The relative mean squared
-#' error is the difference between the mean squared error (MSE) of a method and
-#' the MES of using a non-informative prior.
+#' @return A data frame with one row per scenario-method combination. The
+#' columns are:
+#' \describe{
+#'   \item{Scenarios}{Scenario index.}
+#'   \item{theta}{True control-arm parameter value.}
+#'   \item{theta.t}{True treatment-arm parameter value.}
+#'   \item{Methods}{Borrowing method, one of \code{"NP"}, \code{"rMAP"}, or \code{"SAM"}.}
+#'   \item{Cutoffs}{Calibrated posterior probability cutoff for the method.}
+#'   \item{Bias of theta}{Bias of the posterior mean estimator of \eqn{\theta}.}
+#'   \item{RMSE of theta}{Root mean squared error of the posterior mean estimator of \eqn{\theta}.}
+#'   \item{Weight}{Average borrowing weight under the method.}
+#'   \item{Probability of Rejection}{Repeated-sampling rejection probability.}
+#' }
 #'
-#' To evaluate type I error and power, the determination of whether the
-#' treatment is superior to the control is calculated based on function
-#'  \code{\link[RBesT]{decision2S}}.
-#'
-#'
-#' @return Returns dataframe that contains the relative bias, relative MSE,
-#' type I error, and power for both SAM priors, as well as robust MAP priors.
-#' Additionally, the mixture weight of the SAM prior is also displayed.
-#'
-#' @references Yang P, Zhao Y, Nie L, Vallejo J, Yuan Y.
+#' @references
+#' Yang P, Zhao Y, Nie L, Vallejo J, Yuan Y.
 #' SAM: Self-adapting mixture prior to dynamically borrow information from
-#' historical data in clinical trials. \emph{Biometrics} 2023; 79(4), 2857-2868.
-#' @references Schmidli H, Gsteiger S, Roychoudhury S, O'Hagan A, Spiegelhalter D, Neuenschwander B.
-#' Robust meta-analytic-predictive priors in clinical trials with historical control information.
-#' \emph{Biometrics} 2014; 70(4):1023-1032.
+#' historical data in clinical trials.
+#' \emph{Biometrics} 2023;79(4):2857-2868.
 #'
+#' Schmidli H, Gsteiger S, Roychoudhury S, O'Hagan A, Spiegelhalter D,
+#' Neuenschwander B.
+#' Robust meta-analytic-predictive priors in clinical trials with historical
+#' control information.
+#' \emph{Biometrics} 2014;70(4):1023-1032.
+#'
+#' @seealso \code{\link{eval_oc_bin_2arm}},
+#' \code{\link{eval_oc_cont_2arm}}, \code{\link{calibrate_cutoff_bin_2arm}},
+#' \code{\link{calibrate_cutoff_cont_2arm}}
 #'
 #' @examples
-#' set.seed(123)
-#' ## Example of a binary endpoint
-#' ## Consider a randomized comparative trial designed to borrow information
-#' ## from historical data on the control. We assumed a non-informative prior
-#' ## beta(1, 1) and an informative prior beta(30, 50) after incorporating
-#' ## the historical data. The treatment is regarded as superior to the control
-#' ## if Pr(RR.t > RR.c | data) > 0.95, where RR.t and RR.c are response rates
-#' ##  of the treatment and control, respectively. The operating characteristics
-#' ##  were assessed under the scenarios of (RR.c, RR.t) = (0.3, 0.36) and (0.3, 0.56).
-#' ## OC <- get_OC(## Informative prior constructed based on historical data
-#' ##              if.prior = mixbeta(c(1, 30, 50)),
-#' ##              ## Non-informative prior used for constructing the SAM prior
-#' ##              nf.prior = mixbeta(c(1,1,1)),
-#' ##              delta    = 0.2,  ## Clinically significant difference
-#' ##              n = 35,          ## Sample size for the control arm
-#' ##              n.t = 70,        ## Sample size for the treatment arm
-#' ##              ## Decision rule to compare the whether treatment is superior
-#' ##              ## than the control
-#' ##              decision = decision2S(0.95, 0, lower.tail=FALSE),
-#' ##              ntrial   = 1000,  ## Number of trials simulated
-#' ##              ## Weight assigned to the informative component for MAP prior
-#' ##              weight = 0.5,
-#' ##              ## A vector of response rate for the control arm
-#' ##              theta    = c(0.3, 0.36),
-#' ##              ## A vector of response rate for the treatment arm
-#' ##              theta.t  = c(0.3, 0.56))
-#' ## OC
+#' ## Example: operating characteristics for a two-arm binary trial
+#' ## using a SAM prior without rMAP comparison
 #'
-#' ## Example of continuous endpoint
-#' ## Consider a randomized comparative trial designed to borrow information
-#' ## from historical data on the control. We assumed a non-informative prior
-#' ## N(0, 1e4) and an informative prior N(0.5, 2) after incorporating
-#' ## the historical data. The treatment is regarded as superior to the control
-#' ## if Pr(mean.t > mean.c | data) > 0.95, where mean.t and mean.c are mean
-#' ##  of the treatment and control, respectively. The operating characteristics
-#' ##  were assessed under the scenarios of (mean.c, mean.t) = (0.1, 0.1) and
-#' ## (0.5, 1.0).
-#' sigma      <- 2
-#' prior.mean <- 0.5
-#' prior.se   <- sigma/sqrt(100)
-#' ## OC <- get_OC(## Informative prior constructed based on historical data
-#' ##              if.prior = mixnorm(c(1, prior.mean, prior.se)),
-#' ##              ## Non-informative prior used for constructing the SAM prior
-#' ##              nf.prior = mixnorm(c(1, 0, 1e4)),
-#' ##              delta    = 0.2 * sigma,  ## Clinically significant difference
-#' ##              n = 100,                 ## Sample size for the control arm
-#' ##              n.t = 200,               ## Sample size for the treatment arm
-#' ##              ## Decision rule to compare the whether treatment is superior
-#' ##              ## than the control
-#' ##              decision = decision2S(0.95, 0, lower.tail=FALSE),
-#' ##              ntrial   = 1000,  ## Number of trials simulated
-#' ##              ## A vector of mean for the control arm
-#' ##              theta    = c(0.1, 0.5),
-#' ##              ## A vector of mean for the treatment arm
-#' ##              theta.t  = c(0.1, 1.0),
-#' ##              sigma = sigma)
-#' ## OC
+#' ## Informative prior constructed from historical data
+#' if.prior <- mixbeta(c(1, 20, 40))
 #'
-#' @import Metrics
-#' @import RBesT
-#' @import assertthat
-#' @import checkmate
-#' @import ggplot2
-#' @import stats
+#' ## Evaluate operating characteristics
+#' OC <- get_OC(
+#'   if.prior = if.prior,
+#'   nf.prior = mixbeta(c(1, 1, 1)),   ## Non-informative prior for control mixture
+#'   prior.t = mixbeta(c(1, 1, 1)),    ## Prior for treatment arm
+#'   delta = 0.2,                      ## Clinically significant difference for SAM
+#'   n = 50,                           ## Sample size for control arm
+#'   n.t = 100,                        ## Sample size for treatment arm
+#'   target = 0.05,                    ## Target type I error for cutoff calibration
+#'   if.rMAP = FALSE,                  ## Do not include rMAP comparison
+#'   theta = c(summary(if.prior)["mean"], summary(if.prior)["mean"]),
+#'   theta.t = c(summary(if.prior)["mean"], 0.50),
+#'   alternative = "greater",          ## Superiority test
+#'   margin = 0                        ## Clinical margin
+#' )
+#'
+#' OC
+#'
 #' @export
-get_OC <- function(if.prior, theta.h, method.w, prior.odds, nf.prior, delta, n, n.t, decision, ntrial, if.MAP, weight, theta, theta.t, ...) UseMethod("get_OC")
-#' @export
-get_OC.default <- function(if.prior, theta.h, method.w, prior.odds, nf.prior, delta, n, n.t, decision, ntrial, if.MAP, weight, theta, theta.t, ...) "Unknown density"
+get_OC <- function(if.prior, theta.h, method.w, prior.odds, nf.prior,
+                   prior.t = nf.prior,
+                   delta, n, n.t, target = 0.05,
+                   if.rMAP = FALSE, weight.rMAP = 0.5,
+                   theta, theta.t,
+                   alternative = c("greater", "less"),
+                   margin = 0,
+                   rel.tol = 1e-5,
+                   oc_rel.tol = 1e-6,
+                   interval = c(0.5, 0.999),
+                   n_sd_int = 8, ...) {
 
-#' @describeIn get_OC The function is designed to generate the operating
-#' characteristics of SAM priors for binary endpoints.
-#' @export
-get_OC.betaMix <- function(if.prior, theta.h, method.w, prior.odds, nf.prior, delta, n, n.t, decision, ntrial, if.MAP, weight, theta, theta.t, ...) {
-
-  ## Check if theta and theta.t is the same length
-  if(length(theta) != length(theta.t)){
-    stop('Theta under control and treatment should be the same length!')
-  }
-
-  if(missing(decision)){
-    stop('Please input decision!')
-  }
-
-  if(missing(if.prior)){
-    stop('Please input the informative prior!')
-  }
-
-  if(missing(n)){
-    stop('Please input the sample size for control arm!')
-  }
-
-  if(missing(n.t)){
-    stop('Please input the sample size for treatment arm!')
-  }
-
-  if(missing(ntrial)){
-    stop('Please input the number of trials for simulation!')
-  }
-
-  if(missing(delta)){
-    stop('Please input clinically significant difference!')
-  }
-
-  if(missing(theta.h)){
-    message("Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.")
-    theta.h <- summary(if.prior)['mean']
-  }
-
-
-  if(missing(method.w)){
-    message("Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.")
-    method.w = 'LRT'
-  }
-
-  if(method.w == 'PPR' & missing(prior.odds)){
-    message("Missing the prior odds, set as 1.")
-    prior.odds = 1
-  }
-
-  if(missing(nf.prior)) {
-    message("Using default uniform prior as non-informative prior.")
-    nf.prior <- mixbeta(nf.prior = c(1,1,1))
-  }
-
-  if(missing(if.MAP)){
-    if.MAP <- FALSE
-  }
-
-  if(missing(weight)) {
-    if(if.MAP) message("Using default weight 0.5 to the informative component of MAP prior")
-    weight <- 0.5
-  }
-
-  n_grid <- length(theta)
-
-  ## Across all grid of theta
-  res_OC <- res_Bias <- res_RMSE <- array(0, c(n_grid, 2))
-  res_weight <- rep(0, n_grid)
-
-  ## Store the type I error or power for two results
-  res_SAM <- res_Mix <- res_NP <- rep(0, n_grid)
-
-  for(i in 1:n_grid){
-
-    ## Treatment and control response
-    theta_trt <- theta.t[i];
-    theta_ctr <- theta[i]
-
-    ## Store Bias and RMSE results for SAM and robust MAP prior
-    theta_SAM <- theta_Mix <- theta_NP <- tmp_weight <- c()
-    res_SAM_tmp <- res_Mix_tmp <- res_Non_tmp <- c()
-
-    for(s in 1:ntrial){
-
-      ## Simulate control trial and treatment
-      x <- rbinom(n = 1, size = n, prob = theta_ctr)
-
-      ##-------------------------------
-      ## Non-informative prior
-      ##-------------------------------
-      theta_NP <- c(theta_NP, (x + 1) / (n + 1 + 1))
-
-      ##------------------------
-      ## SAM prior
-      ##------------------------
-
-      ## Calculate SAM weight
-      wSAM <- SAM_weight(if.prior = if.prior,
-                         theta.h = theta.h,
-                         method.w = method.w,
-                         prior.odds = prior.odds,
-                         delta = delta, n = n, r = x)
-
-      tmp_weight <- c(tmp_weight, wSAM)
-
-      ## Construct SAM prior
-      SAM.prior <- SAM_prior(if.prior = if.prior,
-                             nf.prior = nf.prior,
-                             weight = wSAM,
-                             delta = delta)
-
-      ## Poerior inference
-      SAM.post <- postmix(SAM.prior, n = n, r = x)
-
-      theta_SAM <- c(theta_SAM, summary(SAM.post)['mean'])
-
-      ##------------------------
-      ## Robust MAP prior
-      ##------------------------
-
-      prior.Mix <- robustify(priormix = if.prior, weight = 1 - weight,
-                             mean = 1/2)
-
-      posterior.Mix <- postmix(prior.Mix, n = n, r = x)
-
-      theta_Mix <- c(theta_Mix, summary(posterior.Mix)['mean'])
-
-      ##----------------------------
-      ## Compute type I error/power
-      ##----------------------------
-      ## Simulate treatment trial
-      y <- rbinom(n = 1, size = n.t, prob = theta_trt)
-
-      ## Posterior of theta
-      post_theta_t <- postmix(nf.prior, n = n.t, r = y)
-      post_theta_c <- postmix(nf.prior, n = n, r = x)
-
-      res_SAM_tmp <- c(res_SAM_tmp, decision(post_theta_t, SAM.post))
-      res_Mix_tmp <- c(res_Mix_tmp, decision(post_theta_t, posterior.Mix))
-      res_Non_tmp <- c(res_Non_tmp, decision(post_theta_t, post_theta_c))
-
-    }
-
-    ## Store the type I error or power
-    res_SAM[i] <- mean(res_SAM_tmp)
-    res_Mix[i] <- mean(res_Mix_tmp)
-    res_NP[i]  <- mean(res_Non_tmp)
-
-    ## Store the data for bias
-    res_Bias[i,1]   <- mean(theta_SAM) - mean(theta_NP)
-    res_Bias[i,2]   <- mean(theta_Mix) - mean(theta_NP)
-
-    ## Store the data for RMSE
-    res_RMSE[i,1]   <- mse(theta_SAM, theta_ctr) - mse(theta_NP, theta_ctr)
-    res_RMSE[i,2]   <- mse(theta_Mix, theta_ctr) - mse(theta_NP, theta_ctr)
-
-    res_weight[i] <- mean(tmp_weight)
-
-  }
-
-  if(if.MAP){
-
-    return(data.frame(scenarios = 1:n_grid,
-                      Bias_SAM  = res_Bias[,1],
-                      Bias_rMAP = res_Bias[,2],
-                      RMSE_SAM  = res_RMSE[,1],
-                      RMSE_rMAP = res_RMSE[,2],
-                      wSAM      = res_weight,
-                      res_SAM   = res_SAM,
-                      res_rMAP  = res_Mix,
-                      res_NP    = res_NP))
-
-  }else{
-
-    return(data.frame(scenarios = 1:n_grid,
-                      Bias_SAM = res_Bias[,1],
-                      RMSE_SAM = res_RMSE[,1],
-                      wSAM = res_weight,
-                      res_SAM = res_SAM,
-                      res_NP   = res_NP))
-
-  }
-
+  UseMethod("get_OC")
 }
 
-#' @describeIn get_OC The function is designed to generate the operating
-#' characteristics of SAM priors for continuous endpoints.
-#' @param sigma Variance to simulate the continuous endpoint under normality
-#' assumption.
 #' @export
-get_OC.normMix <- function(if.prior, theta.h, method.w, prior.odds, nf.prior, delta, n, n.t, decision, ntrial, if.MAP, weight, theta, theta.t, ..., sigma) {
+get_OC.default <- function(if.prior, theta.h, method.w, prior.odds, nf.prior,
+                           prior.t = nf.prior,
+                           delta, n, n.t, target = 0.05,
+                           if.rMAP = FALSE, weight.rMAP = 0.5,
+                           theta, theta.t,
+                           alternative = c("greater", "less"),
+                           margin = 0,
+                           rel.tol = 1e-5,
+                           oc_rel.tol = 1e-6,
+                           interval = c(0.5, 0.999),
+                           n_sd_int = 8, ...) {
 
-  ## Check if theta and theta.t is the same length
-  if(length(theta) != length(theta.t)){
-    stop('Theta under control and treatment should be the same length!')
+  "Unknown density"
+}
+
+.combine_oc_results_long_format <- function(res_list, cal_list) {
+  preferred_order <- c("NP", "rMAP", "SAM")
+  method_names <- preferred_order[preferred_order %in% names(res_list)]
+
+  n_scen <- nrow(res_list[[method_names[1]]])
+  out_list <- vector("list", n_scen * length(method_names))
+  idx <- 1L
+
+  for (s in seq_len(n_scen)) {
+    for (m in method_names) {
+      res <- res_list[[m]]
+      cal <- cal_list[[m]]
+
+      out_list[[idx]] <- data.frame(
+        Scenarios = s,
+        theta = res$theta[s],
+        theta.t = res$theta.t[s],
+        Methods = m,
+        Cutoffs = cal$cutoff,
+        `Bias of theta` = res$bias[s],
+        `RMSE of theta` = res$rmse[s],
+        Weight = res$mean_weight[s],
+        `Probability of Rejection` = res$reject_prob[s]
+      )
+
+      idx <- idx + 1L
+    }
   }
 
-  if(missing(decision)){
-    stop('Please input decision!')
+  out <- do.call(rbind, out_list)
+  rownames(out) <- NULL
+
+  num_cols <- sapply(out, is.numeric)
+  num_cols["Scenarios"] <- FALSE
+  out[num_cols] <- lapply(out[num_cols], function(x) round(x, 4))
+
+  out
+}
+
+#' @export
+get_OC.betaMix <- function(if.prior, theta.h, method.w, prior.odds, nf.prior,
+                           prior.t = nf.prior,
+                           delta, n, n.t, target = 0.05,
+                           if.rMAP = FALSE, weight.rMAP = 0.5,
+                           theta, theta.t,
+                           alternative = c("greater", "less"),
+                           margin = 0,
+                           rel.tol = 1e-5,
+                           oc_rel.tol = 1e-6,
+                           interval = c(0.5, 0.999),
+                           n_sd_int = 8, ...) {
+
+  alternative <- match.arg(alternative)
+
+  if (length(theta) != length(theta.t)) {
+    stop("Theta under control and treatment should be the same length!")
+  }
+  if (missing(if.prior)) {
+    stop("Please input the informative prior!")
+  }
+  if (missing(n)) {
+    stop("Please input the sample size for control arm!")
+  }
+  if (missing(n.t)) {
+    stop("Please input the sample size for treatment arm!")
+  }
+  if (missing(delta)) {
+    stop("Please input clinically significant difference!")
+  }
+  if (missing(theta.h)) {
+    theta.h <- summary(if.prior)["mean"]
+  }
+  if (missing(method.w)) {
+    method.w <- "LRT"
+  }
+  if (missing(prior.odds)) {
+    prior.odds <- 1
+  }
+  if (missing(nf.prior)) {
+    nf.prior <- mixbeta(nf.prior = c(1, 1, 1))
+  }
+  if (!is.numeric(margin) || length(margin) != 1 || !is.finite(margin) || margin < 0) {
+    stop("`margin` must be a non-negative scalar.")
   }
 
-  if(missing(if.prior)){
-    stop('Please input the informative prior!')
+  theta_cal <- theta[1]
+  theta.t_cal <- if (alternative == "greater") {
+    theta_cal + margin
+  } else {
+    theta_cal - margin
   }
 
-  if(missing(nf.prior)){
-    stop('Please input the non-informative prior!')
+  if (theta.t_cal < 0 || theta.t_cal > 1) {
+    stop("Calibration scenario for binary endpoint is outside [0, 1].")
   }
 
-  if(missing(n)){
-    stop('Please input the sample size for control arm!')
+  cal_list <- list()
+  res_list <- list()
+
+  message("Calibrating the posterior probability cutoff for NP prior method ...")
+  cal_list$NP <- calibrate_cutoff_bin_2arm(
+    if.prior = if.prior,
+    nf.prior = nf.prior,
+    prior.t = prior.t,
+    target = target,
+    n.t = n.t,
+    n = n,
+    theta.t = theta.t_cal,
+    theta = theta_cal,
+    delta = delta,
+    method = "NP",
+    alternative = alternative,
+    margin = margin,
+    weight_rMAP = NULL,
+    method.w = method.w,
+    prior.odds = prior.odds,
+    interval = interval,
+    rel.tol = rel.tol,
+    oc_rel.tol = oc_rel.tol
+  )
+
+  if (if.rMAP) {
+    message("Calibrating the posterior probability cutoff for rMAP prior method ...")
+    cal_list$rMAP <- calibrate_cutoff_bin_2arm(
+      if.prior = if.prior,
+      nf.prior = nf.prior,
+      prior.t = prior.t,
+      target = target,
+      n.t = n.t,
+      n = n,
+      theta.t = theta.t_cal,
+      theta = theta_cal,
+      delta = delta,
+      method = "rMAP",
+      alternative = alternative,
+      margin = margin,
+      weight_rMAP = weight.rMAP,
+      method.w = method.w,
+      prior.odds = prior.odds,
+      interval = interval,
+      rel.tol = rel.tol,
+      oc_rel.tol = oc_rel.tol
+    )
   }
 
-  if(missing(n.t)){
-    stop('Please input the sample size for treatment arm!')
+  message("Calibrating the posterior probability cutoff for SAM prior method ...")
+  cal_list$SAM <- calibrate_cutoff_bin_2arm(
+    if.prior = if.prior,
+    nf.prior = nf.prior,
+    prior.t = prior.t,
+    target = target,
+    n.t = n.t,
+    n = n,
+    theta.t = theta.t_cal,
+    theta = theta_cal,
+    delta = delta,
+    method = "SAM",
+    alternative = alternative,
+    margin = margin,
+    weight_rMAP = NULL,
+    method.w = method.w,
+    prior.odds = prior.odds,
+    interval = interval,
+    rel.tol = rel.tol,
+    oc_rel.tol = oc_rel.tol
+  )
+
+  message("Evaluating operating characteristics for NP prior method ...")
+  res_list$NP <- eval_oc_bin_2arm(
+    if.prior = if.prior,
+    nf.prior = nf.prior,
+    prior.t = prior.t,
+    theta = theta,
+    theta.t = theta.t,
+    n.t = n.t,
+    n = n,
+    delta = delta,
+    method = "NP",
+    cutoff = cal_list$NP$cutoff,
+    alternative = alternative,
+    margin = margin,
+    weight_rMAP = NULL,
+    method.w = method.w,
+    prior.odds = prior.odds,
+    rel.tol = oc_rel.tol
+  )
+
+  if (if.rMAP) {
+    message("Evaluating operating characteristics for rMAP prior method ...")
+    res_list$rMAP <- eval_oc_bin_2arm(
+      if.prior = if.prior,
+      nf.prior = nf.prior,
+      prior.t = prior.t,
+      theta = theta,
+      theta.t = theta.t,
+      n.t = n.t,
+      n = n,
+      delta = delta,
+      method = "rMAP",
+      cutoff = cal_list$rMAP$cutoff,
+      alternative = alternative,
+      margin = margin,
+      weight_rMAP = weight.rMAP,
+      method.w = method.w,
+      prior.odds = prior.odds,
+      rel.tol = oc_rel.tol
+    )
   }
 
-  if(missing(ntrial)){
-    stop('Please input the number of trials for simulation!')
-  }
+  message("Evaluating operating characteristics for SAM prior method ...")
+  res_list$SAM <- eval_oc_bin_2arm(
+    if.prior = if.prior,
+    nf.prior = nf.prior,
+    prior.t = prior.t,
+    theta = theta,
+    theta.t = theta.t,
+    n.t = n.t,
+    n = n,
+    delta = delta,
+    method = "SAM",
+    cutoff = cal_list$SAM$cutoff,
+    alternative = alternative,
+    margin = margin,
+    weight_rMAP = NULL,
+    method.w = method.w,
+    prior.odds = prior.odds,
+    rel.tol = oc_rel.tol
+  )
 
-  if(missing(delta)){
-    stop('Please input clinically significant difference!')
-  }
+  .combine_oc_results_long_format(
+    res_list = res_list,
+    cal_list = cal_list
+  )
+}
 
-  if(!missing(method.w)){
-    assertthat::assert_that(all(method.w %in% c('LRT', 'PPR')))
-    assertthat::assert_that(length(method.w) == 1)
-  }
+#' @export
+get_OC.normMix <- function(if.prior, theta.h, method.w, prior.odds, nf.prior,
+                           prior.t = nf.prior,
+                           delta, n, n.t, target = 0.05,
+                           if.rMAP = FALSE, weight.rMAP = 0.5,
+                           theta, theta.t,
+                           alternative = c("greater", "less"),
+                           margin = 0,
+                           rel.tol = 1e-5,
+                           oc_rel.tol = 1e-6,
+                           interval = c(0.5, 0.999),
+                           n_sd_int = 8, ..., sigma) {
+  alternative <- match.arg(alternative)
 
-  if(missing(theta.h)){
-    message("Using the posterior mean from informative prior as the estimate of the treatment effect based on historical data.")
-    theta.h <- summary(if.prior)['mean']
+  if (length(theta) != length(theta.t)) {
+    stop("Theta under control and treatment should be the same length!")
   }
-
-  if(missing(method.w)){
-    message("Using the LRT (Likelihood Ratio Test) as the default method to calculate mixture weight for SAM priors.")
-    method.w = 'LRT'
+  if (missing(if.prior)) {
+    stop("Please input the informative prior!")
   }
-
-  if(method.w == 'PPR' & missing(prior.odds)){
-    message("Missing the prior odds, set as 1.")
-    prior.odds = 1
+  if (missing(n)) {
+    stop("Please input the sample size for control arm!")
   }
-
-  if(missing(if.MAP)){
-    if.MAP <- FALSE
+  if (missing(n.t)) {
+    stop("Please input the sample size for treatment arm!")
   }
-
-  if(missing(weight)) {
-    if(if.MAP) message("Using default weight 0.5 to the informative component of MAP prior")
-    weight <- 0.5
+  if (missing(delta)) {
+    stop("Please input clinically significant difference!")
   }
-
-  if(missing(sigma)) {
-    message("Using default prior reference scale ", RBesT::sigma(if.prior))
+  if (missing(theta.h)) {
+    theta.h <- summary(if.prior)["mean"]
+  }
+  if (missing(method.w)) {
+    method.w <- "LRT"
+  }
+  if (missing(prior.odds)) {
+    prior.odds <- 1
+  }
+  if (missing(sigma)) {
     sigma <- RBesT::sigma(if.prior)
   }
-  if(missing(nf.prior)) {
-    message(paste("Using default unit-information prior as non-informative prior"))
-    nf.prior <- mixnorm(nf.prior = c(1,summary(if.prior)['mean'],sigma),
-                        param = 'ms')
+  if (missing(nf.prior)) {
+    nf.prior <- mixnorm(
+      nf.prior = c(1, summary(if.prior)["mean"], sigma),
+      param = "ms"
+    )
+  }
+  if (!is.numeric(margin) || length(margin) != 1 || !is.finite(margin) || margin < 0) {
+    stop("`margin` must be a non-negative scalar.")
+  }
+  theta_cal <- theta[1]
+  theta.t_cal <- if (alternative == "greater") {
+    theta_cal + margin
+  } else {
+    theta_cal - margin
   }
 
-  n_grid <- length(theta)
+  cal_list <- list()
+  res_list <- list()
 
-  ## Across all grid of theta
-  res_OC <- res_Bias <- res_RMSE <- array(0, c(n_grid, 2))
-  res_weight <- rep(0, n_grid)
+  message("Calibrating the posterior probability cutoff for NP prior method ...")
+  cal_list$NP <- calibrate_cutoff_cont_2arm(
+    if.prior = if.prior,
+    nf.prior = nf.prior,
+    prior.t = prior.t,
+    target = target,
+    n.t = n.t,
+    n = n,
+    sigma.t = sigma,
+    sigma = sigma,
+    theta.t = theta.t_cal,
+    theta = theta_cal,
+    delta = delta,
+    method = "NP",
+    alternative = alternative,
+    margin = margin,
+    weight_rMAP = NULL,
+    method.w = method.w,
+    prior.odds = prior.odds,
+    interval = interval,
+    rel.tol = rel.tol,
+    oc_rel.tol = oc_rel.tol,
+    n_sd_int = n_sd_int
+  )
 
-  ## Store the type I error or power for two results
-  res_SAM <- res_Mix <- res_NP <- rep(0, n_grid)
-
-  for(i in 1:n_grid){
-
-    ## Treatment and control response
-    theta_trt <- theta.t[i];
-    theta_ctr <- theta[i]
-
-    ## Store Bias and RMSE results for SAM and robust MAP prior
-    theta_SAM <- theta_Mix <- theta_NP <- tmp_weight <- c()
-    res_SAM_tmp <- res_Mix_tmp <- res_Non_tmp <- c()
-
-    for(s in 1:ntrial){
-
-      ## Simulate control trial and treatment
-      x <- rnorm(n, mean = theta_ctr, sd = sigma)
-      theta_c_hat <- mean(x)
-
-      ##-------------------------------
-      ## Non-informative prior
-      ##-------------------------------
-      theta_NP <- c(theta_NP, n*sigma^2 *theta_c_hat / (n*sigma^2  + sigma^2))
-
-      ##------------------------
-      ## SAM prior
-      ##------------------------
-
-      ## Calculate SAM weight
-      wSAM <- SAM_weight(if.prior = if.prior,
-                         theta.h = theta.h,
-                         method.w = method.w, prior.odds = prior.odds,
-                         delta = delta, data = x)
-
-      tmp_weight <- c(tmp_weight, wSAM)
-
-      ## Construct SAM prior
-      SAM.prior <- SAM_prior(if.prior = if.prior,
-                             nf.prior = nf.prior,
-                             weight = wSAM, sigma = sigma)
-
-      ## Poerior inference
-      SAM.post <- postmix(SAM.prior, data = x)
-
-      theta_SAM <- c(theta_SAM, summary(SAM.post)['mean'])
-
-      ##------------------------
-      ## Robust MAP prior
-      ##------------------------
-
-      prior.Mix <- robustify(priormix = if.prior, weight = 1 - weight,
-                             mean = summary(if.prior)[1], sigma = sigma)
-
-      posterior.Mix <- postmix(prior.Mix, data = x)
-
-      theta_Mix <- c(theta_Mix, summary(posterior.Mix)['mean'])
-
-      ##----------------------------
-      ## Compute type I error/power
-      ##----------------------------
-      ## Simulate treatment trial
-      y <- rnorm(n = n.t, mean = theta_trt, sd = sigma)
-
-      ## Posterior of theta
-      post_theta_t <- postmix(nf.prior, data = y)
-      post_theta_c <- postmix(nf.prior, data = x)
-
-      res_SAM_tmp <- c(res_SAM_tmp, decision(post_theta_t, SAM.post))
-      res_Mix_tmp <- c(res_Mix_tmp, decision(post_theta_t, posterior.Mix))
-      res_Non_tmp <- c(res_Non_tmp, decision(post_theta_t, post_theta_c))
-
-    }
-
-    ## Store the type I error or power
-    res_SAM[i] <- mean(res_SAM_tmp)
-    res_Mix[i] <- mean(res_Mix_tmp)
-    res_NP[i]  <- mean(res_Non_tmp)
-
-    ## Store the data for bias
-    res_Bias[i,1]   <- mean(theta_SAM) - mean(theta_NP)
-    res_Bias[i,2]   <- mean(theta_Mix) - mean(theta_NP)
-
-    ## Store the data for RMSE
-    res_RMSE[i,1]   <- mse(theta_SAM, theta_ctr) - mse(theta_NP, theta_ctr)
-    res_RMSE[i,2]   <- mse(theta_Mix, theta_ctr) - mse(theta_NP, theta_ctr)
-
-    res_weight[i] <- mean(tmp_weight)
-
+  if (if.rMAP) {
+    message("Calibrating the posterior probability cutoff for rMAP prior method ...")
+    cal_list$rMAP <- calibrate_cutoff_cont_2arm(
+      if.prior = if.prior,
+      nf.prior = nf.prior,
+      prior.t = prior.t,
+      target = target,
+      n.t = n.t,
+      n = n,
+      sigma.t = sigma,
+      sigma = sigma,
+      theta.t = theta.t_cal,
+      theta = theta_cal,
+      delta = delta,
+      method = "rMAP",
+      alternative = alternative,
+      margin = margin,
+      weight_rMAP = weight.rMAP,
+      method.w = method.w,
+      prior.odds = prior.odds,
+      interval = interval,
+      rel.tol = rel.tol,
+      oc_rel.tol = oc_rel.tol,
+      n_sd_int = n_sd_int
+    )
   }
 
-  if(if.MAP){
+  message("Calibrating the posterior probability cutoff for SAM prior method ...")
+  cal_list$SAM <- calibrate_cutoff_cont_2arm(
+    if.prior = if.prior,
+    nf.prior = nf.prior,
+    prior.t = prior.t,
+    target = target,
+    n.t = n.t,
+    n = n,
+    sigma.t = sigma,
+    sigma = sigma,
+    theta.t = theta.t_cal,
+    theta = theta_cal,
+    delta = delta,
+    method = "SAM",
+    alternative = alternative,
+    margin = margin,
+    weight_rMAP = NULL,
+    method.w = method.w,
+    prior.odds = prior.odds,
+    interval = interval,
+    rel.tol = rel.tol,
+    oc_rel.tol = oc_rel.tol,
+    n_sd_int = n_sd_int
+  )
 
-    return(data.frame(scenarios = 1:n_grid,
-                      Bias_SAM  = res_Bias[,1],
-                      Bias_rMAP = res_Bias[,2],
-                      RMSE_SAM  = res_RMSE[,1],
-                      RMSE_rMAP = res_RMSE[,2],
-                      wSAM      = res_weight,
-                      res_SAM   = res_SAM,
-                      res_rMAP  = res_Mix,
-                      res_NP    = res_NP))
+  message("Evaluating operating characteristics for NP prior method ...")
+  res_list$NP <- eval_oc_cont_2arm(
+    if.prior = if.prior,
+    nf.prior = nf.prior,
+    prior.t = prior.t,
+    theta = theta,
+    theta.t = theta.t,
+    n.t = n.t,
+    n = n,
+    sigma.t = sigma,
+    sigma = sigma,
+    delta = delta,
+    method = "NP",
+    cutoff = cal_list$NP$cutoff,
+    alternative = alternative,
+    margin = margin,
+    weight_rMAP = NULL,
+    method.w = method.w,
+    prior.odds = prior.odds,
+    rel.tol = oc_rel.tol,
+    n_sd_int = n_sd_int
+  )
 
-  }else{
-
-    return(data.frame(scenarios = 1:n_grid,
-                      Bias_SAM  = res_Bias[,1],
-                      RMSE_SAM  = res_RMSE[,1],
-                      wSAM      = res_weight,
-                      res_SAM   = res_SAM,
-                      res_NP    = res_NP
-                      ))
-
+  if (if.rMAP) {
+    message("Evaluating operating characteristics for rMAP prior method ...")
+    res_list$rMAP <- eval_oc_cont_2arm(
+      if.prior = if.prior,
+      nf.prior = nf.prior,
+      prior.t = prior.t,
+      theta = theta,
+      theta.t = theta.t,
+      n.t = n.t,
+      n = n,
+      sigma.t = sigma,
+      sigma = sigma,
+      delta = delta,
+      method = "rMAP",
+      cutoff = cal_list$rMAP$cutoff,
+      alternative = alternative,
+      margin = margin,
+      weight_rMAP = weight.rMAP,
+      method.w = method.w,
+      prior.odds = prior.odds,
+      rel.tol = oc_rel.tol,
+      n_sd_int = n_sd_int
+    )
   }
 
+  message("Evaluating operating characteristics for SAM prior method ...")
+  res_list$SAM <- eval_oc_cont_2arm(
+    if.prior = if.prior,
+    nf.prior = nf.prior,
+    prior.t = prior.t,
+    theta = theta,
+    theta.t = theta.t,
+    n.t = n.t,
+    n = n,
+    sigma.t = sigma,
+    sigma = sigma,
+    delta = delta,
+    method = "SAM",
+    cutoff = cal_list$SAM$cutoff,
+    alternative = alternative,
+    margin = margin,
+    weight_rMAP = NULL,
+    method.w = method.w,
+    prior.odds = prior.odds,
+    rel.tol = oc_rel.tol,
+    n_sd_int = n_sd_int
+  )
+
+  .combine_oc_results_long_format(
+    res_list = res_list,
+    cal_list = cal_list
+  )
 }

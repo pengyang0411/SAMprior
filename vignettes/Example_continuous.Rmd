@@ -45,7 +45,7 @@ if (is_CRAN) {
 
 The self-adapting mixture prior (SAMprior) package is designed to enhance 
 the effectiveness and practicality of clinical trials by leveraging historical 
-information or real-world data [1]. The package incorporate historical data 
+information or real-world data [1]. The package incorporates historical data 
 into a new trial using an informative prior constructed based on historical 
 data while mixing a non-informative prior to enhance the robustness of 
 information borrowing. It utilizes a data-driven way to determine a self-adapting
@@ -59,7 +59,7 @@ Meta-Analytic-Predictive (rMAP) prior [2], which assigns a fixed weight of 0.5.
 SAM prior is constructed by mixing an informative prior $\pi_1(\theta)$, 
 constructed based on historical data, with a non-informative prior 
 $\pi_0(\theta)$ using the mixture weight $w$ determined by **`SAM_weight`**
-function to achieve the degree of prior-data conflict [1]. The following 
+function according to the degree of prior-data conflict [1]. The following 
 sections describe how to construct SAM prior in details.
 
 ## Informative Prior Construction based on Historical Data
@@ -137,16 +137,16 @@ $$
 where $P(H_0)$ and $P(H_1)$ is the prior probabilities of $H_0$ and $H_1$ 
 being true. $BF$ is the Bayes Factor that in this case is the same as LRT.
 
-The SAM prior, denoted as $\pi_{sam}(\theta)$, is then defined as a mixture
+The SAM prior, denoted as $\pi_{\text{sam}}(\theta)$, is then defined as a mixture
 of an informative prior $\pi_1(\theta)$, constructed based on $D_h$, with a 
 non-informative prior $\pi_0(\theta)$:
-$$\pi_{sam}(\theta) = w \pi_1(\theta) + (1 - w) \pi_0(\theta)$$
+$$\pi_{\text{sam}}(\theta) = w \pi_1(\theta) + (1 - w) \pi_0(\theta)$$
 where the mixture weight $w$ is calculated as:
 $$w = \frac{R}{1 + R}.$$ 
 As the level of prior-data conflict increases, the likelihood ratio $R$ 
 decreases, resulting in a decrease in the weight $w$ assigned to the 
 informative prior and a decrease in information borrowing. As a result,
-$\pi_{sam}(\theta)$ is data-driven and has the ability to self-adapt the 
+$\pi_{\text{sam}}(\theta)$ is data-driven and has the ability to self-adapt the 
 information borrowing based on the degree of prior-data conflict.
 
 To calculate the SAM weight $w$, we first assume the sample size enrolled in 
@@ -157,11 +157,12 @@ function **`SAM_weight`** in SAMprior as follows:
 ```{r, message=FALSE}
 set.seed(234)
 sigma        <- 3 ## Standard deviation in the current trial
-data.crt     <- rnorm(30, mean = 0.4, sd = sigma)
-wSAM <- SAM_weight(if.prior = map_automix, 
-                   delta = 0.5 * sigma,
-                   data = data.crt)
-cat('SAM weight: ', wSAM)
+data.crt     <- rnorm(35, mean = 0.4, sd = sigma)
+wSAM_LRT <- SAM_weight(if.prior = map_automix, 
+                       delta = 0.5 * sigma,
+                       data = data.crt)
+                   
+cat('SAM weight: ', wSAM_LRT)
 ```
 
 The default method to calculate $w$ is using LRT, which is fully data-driven.
@@ -169,12 +170,13 @@ However, if investigators want to incorporate prior information on prior-data
 conflict to determine the mixture weight $w$, this can be achieved by using 
 PPR method as follows:
 ```{r, message=FALSE}
-wSAM <- SAM_weight(if.prior = map_automix, 
-                   delta = 0.5 * sigma,
-                   method.w = 'PPR',
-                   prior.odds = 3/7,
-                   data = data.crt)
-cat('SAM weight: ', wSAM)
+wSAM_PPR <- SAM_weight(if.prior = map_automix, 
+                       delta = 0.5 * sigma,
+                       method.w = 'PPR',
+                       prior.odds = 3/7,
+                       data = data.crt)
+                       
+cat('SAM weight: ', wSAM_PPR)
 ```
 The **`prior.odds`** indicates the prior probability of $H_0$ over the prior 
 probability of $H_1$. In this case (e.g., **`prior.odds = 3/7`**), the prior 
@@ -218,7 +220,7 @@ with a vague prior $\pi_0(\theta)$ using pre-determined mixture weight by
 unit_prior <- mixnorm(nf.prior = c(1, summary(map_automix)['mean'], sigma))
 SAM.prior <- SAM_prior(if.prior = map_automix, 
                        nf.prior = unit_prior,
-                       weight = wSAM, sigma = sigma)
+                       weight = wSAM_LRT, sigma = sigma)
 SAM.prior
 ```
 where the non-informative prior $\pi_0(\theta)$ follows an unit-information prior.
@@ -226,7 +228,7 @@ where the non-informative prior $\pi_0(\theta)$ follows an unit-information prio
 ## Operating Characteristics
 
 In this section, we aim to investigate the operating characteristics of 
-the SAM prior, constructed based on the historical data, via simulation.
+the SAM prior, constructed based on the historical data.
 The incorporation of historical information is expected to be beneficial 
 in reducing the required sample size for the current arms. To achieve this, 
 we assume a 1:2 ratio between the control and treatment arms.
@@ -236,93 +238,148 @@ with pre-specified fixed weight under various scenarios. Specifically,
 we will evaluate the relative bias and relative mean squared error (MSE) 
 of these methods. The relative bias and relative MSE are defined 
 as the differences between the bias/MSE of a given method and the bias/MSE 
-obtained when using a non-informative prior.
+obtained when using a non-informative prior for the estimated effect in the 
+control arm.
 
-Additionally, we investigate the type I error and power of the methods 
+Additionally, we investigate the Type I error and power of the methods 
 under different degrees of prior-data conflicts. The decision regarding 
 whether a treatment is superior or inferior to a standard control will be 
 based on the condition:
-$$\Pr(\theta_t - \theta > 0) > 0.95.$$
+$$\Pr(\theta_t - \theta > 0 \mid D) > C,$$
+where $\Delta$ is the clinical margin, and we let $\Delta = 0$.
+$C$ is the posterior probability cutoff. We calibrated the posterior 
+probability cutoff under the null hypothesis, where there is no treatment 
+effect difference between the treatment and control arms and the historical
+data and current control arm are assumed to arise from the same data-generating
+process, to ensure the Type I error is maintained at the nominal level.
 
 In SAMprior, the operating characteristics can be considered in following steps:
 
 1. Specify priors: This step involves constructing informative prior based 
    on historical data and non-informative prior.
-
-2. Specify the decision criterion: The **`decision2S`** function 
-   is used to initialize the decision criterion. This criterion determines 
-   whether a treatment is considered superior or inferior to a standard 
-   control.
    
-3. Specify design parameters for the **`get_OC`** function: This step 
+2. Specify design parameters for the **`get_OC`** function: This step 
    involves defining the design parameters for evaluating the operating 
    characteristics. These parameters include the clinically significant 
    difference (CSD) used in SAM prior calculation, the method used to 
    determine the mixture weight for the SAM prior, the sample sizes for 
-   the control and treatment arms, the number of trials used for simulation, 
-   the choice of weight for the robust MAP prior used as a benchmark, and 
-   the vector of mean for both the control and treatment arms.
+   the control and treatment arms, the choice of weight for the robust MAP 
+   prior used as a benchmark.
+   
+3. Scenarios: This step specifies the vectors of response rates for the 
+   control and treatment arms. The **`get_OC`** function calibrates the
+   posterior probability cutoff under the assumption that the null calibration 
+   scenario is given by $\theta =$ **`theta[1]`** and 
+   $\theta_t =$ **`theta[1]`** $+ \Delta$ with $\Delta = 0$.
 
 ### Type I Error
-
-To compute the type I error, we consider four scenarios, with the first and 
-last two scenarios representing minimal and substantial prior-data conflicts, 
-respectively. In general, the results show that both methods effectively 
-control the type I error.
+To evaluate Type I error, we consider four scenarios. In the first scenario, 
+we assume $\theta = \theta_t = \theta_h$, so each method should calibrate 
+the Type I error rate to the nominal level. The second and third scenarios 
+represent minimal prior-data conflict, whereas the last scenario represents 
+substantial prior-data conflict. Overall, the results indicate that both 
+SAM and rMAP effectively control the Type I error under minimal prior-data 
+conflict, while SAM demonstrates better Type I error control in the presence
+of substantial prior-data conflict.
 ```{r, message=FALSE}
-set.seed(123)
 # weak_prior <- mixnorm(c(1, summary(map_automix)[1], 1e4))
-TypeI <- get_OC(if.prior = map_automix,    ## MAP prior from historical data
-                nf.prior = unit_prior,     ## Weak-informative prior for treatment arm
-                delta    = 0.5*sigma,      ## CSD for SAM prior
-                n        = 35, n.t = 70,   ## Sample size for control and treatment arms
-                ## Decisions
-                decision = decision2S(0.95, 0, lower.tail=FALSE), 
-                ntrial   = 1000,           ## Number of trials simulated
-                if.MAP   = TRUE,           ## Output robust MAP prior for comparison
-                weight   = 0.5,            ## Weight for robust MAP prior
-                ## Mean for control and treatment arms
-                theta    = c(0, 0,    -2, 4),
-                theta.t  = c(0, -0.1, -2, 4),
-                sigma    = sigma
-                  )
+TypeI <- get_OC(if.prior = map_automix,         ## MAP prior from historical data
+                nf.prior = unit_prior,          ## Unit-informative prior for mixture prior
+                prior.t = mixnorm(c(1,0,1000)), ## Vague prior for treatment arm
+                delta    = 0.5*sigma,         ## CSD for SAM prior
+                ## Method to determine the mixture weight for the SAM prior
+                method.w = 'LRT',             
+                n        = 35, n.t = 70,      ## Sample size for control and treatment arms
+                if.rMAP   = TRUE,             ## Output robust MAP prior for comparison
+                weight   = 0.5,               ## Weight for robust MAP prior
+                ## Trial settings
+                alternative = "greater", ## Direction of the posterior decision. Must be one of "greater" or "less"
+                margin = 0,              ## Clinical margin
+                ## Treatment effect for control and treatment arms
+                theta    = c(summary(map_automix)['mean'], 0,    -0.2, 2),
+                theta.t  = c(summary(map_automix)['mean'], -0.1, -0.2, 2))
 kable(TypeI)
 ```
 ### Power
-
-For power evaluation, we also consider four scenarios, with the first and 
-last two scenarios representing minimal and substantial prior-data conflicts, 
-respectively. In general, it is observed that the SAM prior achieves comparable 
-or better power compared to rMAP.
+For power evaluation, we also consider four scenarios. In the first scenario, 
+we assume $\theta = \theta_t = \theta_h$, so each method should calibrate the 
+Type I error rate to the nominal level. The second and third scenarios represent 
+minimal prior-data conflict, whereas the last scenario represents substantial 
+prior-data conflict. Overall, the results show that the SAM prior achieves 
+performance similar to that of rMAP, and both outperform non-informative prior 
+(NP) when prior-data conflict is minimal. However, when prior-data conflict is 
+substantial, the SAM prior yields better performance than rMAP.
 ```{r, message=FALSE}
-set.seed(123)
-Power <- get_OC(if.prior = map_automix,    ## MAP prior based on historical data
-                nf.prior = unit_prior,     ## Non-informative prior for treatment arm
-                delta    = 0.5*sigma,      ## CSD for SAM prior
-                n        = 35, n.t = 70,   ## Sample size for control and treatment arms
-                ## Decisions
-                decision = decision2S(0.95, 0, lower.tail=FALSE), 
-                ntrial   = 1000,           ## Number of trials simulated
-                if.MAP   = TRUE,           ## Output robust MAP prior for comparison
-                weight   = 0.5,            ## Weight for robust MAP prior
-                ## Mean for control and treatment arms
-                theta    = c(0, 0.1, 0.5,  -3),
-                theta.t  = c(1, 1.1, 2.0,  -1.5),
-                sigma    = sigma
-                  )
+Power <- get_OC(if.prior = map_automix,         ## MAP prior from historical data
+                nf.prior = unit_prior,          ## Unit-information prior for mixture prior
+                prior.t = mixnorm(c(1,0,1000)), ## Vague prior for treatment arm
+                delta    = 0.5 * sigma,       ## CSD for SAM prior
+                ## Method to determine the mixture weight for the SAM prior
+                method.w = 'LRT',             
+                n        = 35, n.t = 70,      ## Sample size for control and treatment arms
+                if.rMAP   = TRUE,             ## Output robust MAP prior for comparison
+                weight   = 0.5,               ## Weight for robust MAP prior
+                ## Trial settings
+                alternative = "greater", ## Direction of the posterior decision. Must be one of "greater" or "less"
+                margin = 0,              ## Clinical margin
+                ## Treatment effect for control and treatment arms
+                theta    = c(summary(map_automix)['mean'], 0.1, 0.5,  -2),
+                theta.t  = c(summary(map_automix)['mean'], 1.1, 2.0,  -0.5))
 kable(Power)
 ```
 
 
 # Decision Making
+Finally, we present an example showing how to calibrate the posterior 
+probability cutoff and make a final decision on whether the treatment
+is superior to a standard control after the trial has been 
+completed and the data have been collected.
 
-Finally, we present an example of how to make a final decision on whether the 
-treatment is superior or inferior to a standard control once the trial has been 
-completed and data has been collected. This step can be accomplished using the 
-**`postmix`** function from RBesT, as shown below:
-```{r, message=FALSE}
+The calibration step aims to identify the posterior probability cutoff $C$ 
+such that the Type I error is controlled at a prespecified level. 
+For superiority, this is based on the posterior decision rule
+$$
+\Pr(\theta_t - \theta > \Delta \mid D) > C,
+$$
+where $\Delta$ is the clinical margin, which is often 0.
+
+This calibration can be carried out using the **`calibrate_cutoff_2arm`**
+function, as illustrated below:
+```{r}
+## Calibrate the posterior probability cutoff 
+PPC <- calibrate_cutoff_2arm(if.prior = map_automix,         ## MAP prior from historical data
+                             nf.prior = unit_prior,          ## Unit-information prior for mixture prior
+                             prior.t = mixnorm(c(1,0,1000)), ## Vague prior for treatment arm
+                             target = 0.05,                 ## Targeted Type I error rate
+                             n.t = 70, n = 35,              ## Sample size for treatment and control arms, respectively
+                             theta.t = summary(map_automix)['mean'],  ## The true effect for treatment arm
+                             theta = summary(map_automix)['mean'],    ## The true effect for control arm
+                             sigma.t = sigma, sigma = sigma, ## Standard deviation in the treatment and control arms, respectively
+                             ## Method to determine the mixture weight for the SAM prior
+                             method = 'SAM',    ## Method 
+                             delta = 0.2,       ## CSD for SAM prior
+                             ## Trial settings
+                             alternative = "greater", ## Direction of the posterior decision. Must be one of "greater" or "less".
+                             margin = 0.     ## Clinical margin.
+                             )
+```
+
+
+```{r include=F}
+cat("Calibrated posterior probability cutoff:", round(PPC$cutoff, 4), "\n")
+```
+
+To make the final decision using the calibrated posterior probability cutoff 
+$C$, we next update the posterior distributions based on the observed trial 
+data. In this example, the final posterior updating step is carried out using 
+the **`postmix`** function from RBesT, while the calibrated cutoff $C$ is 
+obtained from **`calibrate_cutoff_2arm`** in SAMprior. The treatment is then 
+declared superior if the resulting posterior probability exceeds the calibrated 
+cutoff. The posterior updating step is illustrated below:
+
+```{r}
 ## Simulate data for treatment arm
-data.trt <- rnorm(60, mean = 3, sd = sigma)
+data.trt <- rnorm(70, mean = 3, sd = sigma)
 
 ## first obtain posterior distributions...
 post_SAM <- postmix(priormix = SAM.prior,   ## SAM Prior
@@ -331,11 +388,12 @@ post_trt <- postmix(priormix = unit_prior,  ## Non-informative prior
                     data = data.trt)
 
 ## Define the decision function
-decision = decision2S(0.95, 0, lower.tail=FALSE)
+decision = decision2S(PPC$cutoff, 0, lower.tail=FALSE)
 
 ## Decision-making
 decision(post_trt, post_SAM)
 ```
+
 
 ### References
 

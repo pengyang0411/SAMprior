@@ -149,10 +149,10 @@ enrolled in the control arm is $n = 35$, with $r = 10$ responses, then we can
 apply function **`SAM_weight`** in SAMprior as follows: 
 ```{r, message=FALSE}
 n <- 35; r = 10 
-wSAM <- SAM_weight(if.prior = map_automix, 
-                   delta = 0.2,
-                   n = n, r = r)
-cat('SAM weight: ', wSAM)
+wSAM_LRT <- SAM_weight(if.prior = map_automix, 
+                       delta = 0.2,
+                       n = n, r = r)
+cat('SAM weight: ', wSAM_LRT)
 ```
 
 The default method to calculate $w$ is using LRT, which is fully data-driven.
@@ -160,12 +160,12 @@ However, if investigators want to incorporate prior information on prior-data
 conflict to determine the mixture weight $w$, this can be achieved by using 
 PPR method as follows:
 ```{r, message=FALSE}
-wSAM <- SAM_weight(if.prior = map_automix, 
-                   delta = 0.2,
-                   method.w = 'PPR',
-                   prior.odds = 3/7,
-                   n = n, r = r)
-cat('SAM weight: ', wSAM)
+wSAM_PPR <- SAM_weight(if.prior = map_automix, 
+                       delta = 0.2,
+                       method.w = 'PPR',
+                       prior.odds = 3/7,
+                       n = n, r = r)
+cat('SAM weight: ', wSAM_PPR)
 ```
 The **`prior.odds`** indicates the prior probability of $H_0$ over the prior 
 probability of $H_1$. In this case (e.g., **`prior.odds = 3/7`**), the prior 
@@ -197,21 +197,59 @@ with a vague prior $\pi_0(\theta)$ using pre-determined mixture weight by
 ```{r, message=FALSE}
 SAM.prior <- SAM_prior(if.prior = map_automix, 
                        nf.prior = mixbeta(nf.prior = c(1,1,1)),
-                       weight = wSAM)
+                       weight = wSAM_LRT)
 SAM.prior
 ```
 where the non-informative prior $\pi_0(\theta)$ follows a uniform distribution.
 
 #### Decision Making
 
-Finally, we present an example of how to make a final decision on whether the 
-treatment is superior or inferior to a standard control once the trial has been 
-completed and data has been collected. This step can be accomplished using the 
-**`postmix`** function from RBesT, as shown below:
+Finally, we present an example showing how to calibrate the posterior 
+probability cutoff and make a final decision on whether the treatment
+is superior or inferior to a standard control after the trial has been 
+completed and the data have been collected.
+
+The calibration step aims to identify the posterior probability cutoff $C$ 
+such that the type I error is controlled at a prespecified level. 
+For superiority, this is based on the posterior decision rule
+$$
+\Pr(\theta_t - \theta > \Delta \mid D) > C,
+$$
+where $\Delta$ is the clinical margin, which is often 0.
+
+This calibration can be carried out using the **`calibrate_cutoff_2arm`**
+function, as illustrated below:
 ```{r}
 ## Sample size and number of responses for treatment arm
 n_t <- 70; x_t <- 22 
+## Calibrate the posterior probability cutoff 
+PPC <- calibrate_cutoff_2arm(if.prior = map_automix,        ## MAP prior from historical data
+                             nf.prior = mixbeta(c(1,1,1)),  ## Non-informative prior for SAM prior
+                             prior.t = mixbeta(c(1,1,1)),   ## Non-informative prior for treatment arm
+                             target = 0.05,                 ## Targeted Type I error rate
+                             n.t = n_t, n = n,              ## Sample size for treatment and control arms, respectively
+                             theta.t = summary(map_automix)['mean'],  ## The true effect for treatment arm
+                             theta = summary(map_automix)['mean'],    ## The true effect for control arm
+                             ## Method to determine the mixture weight for the SAM prior
+                             method = 'SAM',    ## Method 
+                             delta = 0.2,       ## CSD for SAM prior
+                             ## Trial settings
+                             alternative = "greater", ## Direction of the posterior decision. Must be one of "greater" or "less".
+                             margin = 0.     ## Clinical margin.
+                             )
+```
 
+
+```{r include=F}
+cat("Calibrated posterior probability cutoff:", round(PPC$cutoff, 4), "\n")
+```
+
+To make the final decision using the calibrated posterior probability cutoff 
+$C$, we can compute the posterior distribution based on the observed 
+trial data. This can be accomplished using the **`postmix`** function 
+from RBesT, as shown below:
+
+```{r}
 ## first obtain posterior distributions...
 post_SAM <- postmix(priormix = SAM.prior,         ## SAM Prior
                     r = r,   n = n)
@@ -219,7 +257,7 @@ post_trt <- postmix(priormix = mixbeta(c(1,1,1)), ## Non-informative prior
                     r = x_t, n = n_t)
 
 ## Define the decision function
-decision = decision2S(0.95, 0, lower.tail=FALSE)
+decision = decision2S(PPC$cutoff, 0, lower.tail=FALSE)
 
 ## Decision-making
 decision(post_trt, post_SAM)
@@ -229,7 +267,7 @@ decision(post_trt, post_SAM)
 
 ## Maintainer information
 
-Peng Yang ([py11@rice.edu](mailto:py11@rice))
+Peng Yang ([pyang7@mdanderson.org](mailto:pyang7@mdanderson.org))
 
 
 ## Citation
