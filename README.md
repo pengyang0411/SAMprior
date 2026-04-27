@@ -136,16 +136,16 @@ quantify the degree of prior-data conflict and determine the extent of
 information borrowing.
 
 $$
-R = \frac{P(D \| H_0, \theta_h)}{P(D \| H_1, \theta_h)} = \frac{P(D \| \theta = \theta_h)}{\max \\ P(D \| \theta = \theta_h + \delta), P(D \| \theta = \theta_h - \delta) \\} ,
+R = \frac{P(D \mid H_0, \theta_h)}{P(D \mid H_1, \theta_h)}
+= \frac{P(D \mid \theta = \theta_h)}
+{\max\\P(D \mid \theta = \theta_h + \delta),\\ P(D \mid \theta = \theta_h - \delta)\\} .
 $$
 
 where *P*(*D*\|⋅) denotes the likelihood function. An alternative
 Bayesian choice is the posterior probability ratio (PPR):
 
 $$
-R = \frac{P(D \mid H_0, \theta_h)}{P(D \mid H_1, \theta_h)}
-= \frac{P(D \mid \theta = \theta_h)}
-{\max\\P(D \mid \theta = \theta_h + \delta),\\ P(D \mid \theta = \theta_h - \delta)\\} .
+R = \frac{P(D \mid H_0, \theta_h)}{P(D \mid H_1, \theta_h)} = \frac{P(H_0)}{P(H_1)} \times BF ,
 $$
 
 where *P*(*H*<sub>0</sub>) and *P*(*H*<sub>1</sub>) is the prior
