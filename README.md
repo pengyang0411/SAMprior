@@ -1,3 +1,15 @@
+SAMprior package
+================
+
+- [Self-adapting Mixture (SAM)
+  Priors](#self-adapting-mixture-sam-priors)
+  - [Description](#description)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [SAM Prior Derivation](#sam-prior-derivation)
+  - [Maintainer information](#maintainer-information)
+  - [Citation](#citation)
+
 # Self-adapting Mixture (SAM) Priors
 
 ## Description
@@ -47,12 +59,12 @@ the control were used to construct the MAP prior:
 
 ### SAM Prior Derivation
 
-SAM prior is constructed by mixing an informative prior
-*π*<sub>1</sub>(*θ*), constructed based on historical data, with a
-non-informative prior *π*<sub>0</sub>(*θ*) using the mixture weight *w*
-determined by **`SAM_weight`** function to achieve the degree of
-prior-data conflict \[1\]. The following sections describe how to
-construct SAM prior in details.
+SAM prior is constructed by mixing an informative prior $\pi_1(\theta)$,
+constructed based on historical data, with a non-informative prior
+$\pi_0(\theta)$ using the mixture weight $w$ determined by
+**`SAM_weight`** function to achieve the degree of prior-data conflict
+\[1\]. The following sections describe how to construct SAM prior in
+details.
 
 #### Informative Prior Construction based on Historical Data
 
@@ -106,74 +118,75 @@ plot(map_automix)$mix
     ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
     ## generated.
 
-![](README_files/figure-markdown_github/unnamed-chunk-2-1.png)
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 The resulting MAP prior is approximated by a mixture of conjugate
 priors, given by
-*π*<sub>1</sub>(*θ*) = 0.63*B**e**t**a*(42.5, 77.2) + 0.37*B**e**t**a*(7.2, 12.4),
-with *θ̂*<sub>*h*</sub> ≈ 0.36.
+$\pi_1(\theta) = 0.63 Beta(42.5, 77.2) + 0.37 Beta(7.2, 12.4)$, with
+$\hat{\theta}_h \approx 0.36$.
 
 #### SAM Weight Determination
 
-Let *θ* and *θ*<sub>*h*</sub> denote the treatment effects associated
-with the current arm data *D* and historical *D*<sub>*h*</sub>,
-respectively. Let *δ* denote the clinically significant difference such
-that is \|*θ*<sub>*h*</sub> − *θ*\| ≥ *δ*, then *θ*<sub>*h*</sub> is
-regarded as clinically distinct from *θ*, and it is therefore
-inappropriate to borrow any information from *D*<sub>*h*</sub>. Consider
-two hypotheses:
+Let $\theta$ and $\theta_h$ denote the treatment effects associated with
+the current arm data $D$ and historical $D_h$, respectively. Let
+$\delta$ denote the clinically significant difference such that is
+$|\theta_h - \theta| \ge \delta$, then $\theta_h$ is regarded as
+clinically distinct from $\theta$, and it is therefore inappropriate to
+borrow any information from $D_h$. Consider two hypotheses:
 
-*H*<sub>0</sub> : *θ* = *θ*<sub>*h*</sub>,  *H*<sub>1</sub> : *θ* = *θ*<sub>*h*</sub> + *δ* or *θ* = *θ*<sub>*h*</sub> − *δ*.
+$$
+H_0: \theta = \theta_h, ~~ H_1: \theta = \theta_h + \delta ~ \text{or} ~ \theta = \theta_h - \delta.
+$$
 
-*H*<sub>0</sub> represents that *D*<sub>*h*</sub> and *D* are consistent
-(i.e., no prior-data conflict) and thus information borrowing is
-desirable, whereas *H*<sub>1</sub> represents that the treatment effect
-of *D* differs from *D*<sub>*h*</sub> to such a degree that no
-information should be borrowed.
+$H_0$ represents that $D_h$ and $D$ are consistent (i.e., no prior-data
+conflict) and thus information borrowing is desirable, whereas $H_1$
+represents that the treatment effect of $D$ differs from $D_h$ to such a
+degree that no information should be borrowed.
 
-The SAM prior uses the likelihood ratio test (LRT) statistics *R* to
+The SAM prior uses the likelihood ratio test (LRT) statistics $R$ to
 quantify the degree of prior-data conflict and determine the extent of
 information borrowing.
 
 $$
 R = \frac{P(D \mid H_0, \theta_h)}{P(D \mid H_1, \theta_h)}
 = \frac{P(D \mid \theta = \theta_h)}
-{\max\\P(D \mid \theta = \theta_h + \delta),\\ P(D \mid \theta = \theta_h - \delta)\\} .
+{\max\{P(D \mid \theta = \theta_h + \delta), P(D \mid \theta = \theta_h - \delta)\}} .
 $$
 
-where *P*(*D*\|⋅) denotes the likelihood function. An alternative
+where $P(D | \cdot)$ denotes the likelihood function. An alternative
 Bayesian choice is the posterior probability ratio (PPR):
 
 $$
 R = \frac{P(D \mid H_0, \theta_h)}{P(D \mid H_1, \theta_h)} = \frac{P(H_0)}{P(H_1)} \times BF ,
 $$
 
-where *P*(*H*<sub>0</sub>) and *P*(*H*<sub>1</sub>) is the prior
-probabilities of *H*<sub>0</sub> and *H*<sub>1</sub> being true. *B**F*
-is the Bayes Factor that in this case is the same as LRT.
+where $P(H_0)$ and $P(H_1)$ is the prior probabilities of $H_0$ and
+$H_1$ being true. $BF$ is the Bayes Factor that in this case is the same
+as LRT.
 
-The SAM prior, denoted as *π*<sub>*s**a**m*</sub>(*θ*), is then defined
-as a mixture of an informative prior *π*<sub>1</sub>(*θ*), constructed
-based on *D*<sub>*h*</sub>, with a non-informative prior
-*π*<sub>0</sub>(*θ*):
+The SAM prior, denoted as $\pi_{sam}(\theta)$, is then defined as a
+mixture of an informative prior $\pi_1(\theta)$, constructed based on
+$D_h$, with a non-informative prior $\pi_0(\theta)$:
 
-*π*<sub>*s**a**m*</sub>(*θ*) = *w**π*<sub>1</sub>(*θ*) + (1 − *w*)*π*<sub>0</sub>(*θ*),
+$$
+\pi_{\text{sam}}(\theta) = w \pi_1(\theta) + (1 - w) \pi_0(\theta),
+$$
 
-where the mixture weight *w* is calculated as:
+where the mixture weight $w$ is calculated as:
 
 $$
 w = \frac{R}{1 + R}.
 $$
 
-As the level of prior-data conflict increases, the likelihood ratio *R*
-decreases, resulting in a decrease in the weight *w* assigned to the
+As the level of prior-data conflict increases, the likelihood ratio $R$
+decreases, resulting in a decrease in the weight $w$ assigned to the
 informative prior and a decrease in information borrowing. As a result,
-*π*<sub>*s**a**m*</sub>(*θ*) is data-driven and has the ability to
+$\pi_{\text{sam}}(\theta)$ is data-driven and has the ability to
 self-adapt the information borrowing based on the degree of prior-data
 conflict.
 
-To calculate mixture weight *w* of the SAM prior, we assume the sample
-size enrolled in the control arm is *n* = 35, with *r* = 10 responses,
+To calculate mixture weight $w$ of the SAM prior, we assume the sample
+size enrolled in the control arm is $n = 35$, with $r = 10$ responses,
 then we can apply function **`SAM_weight`** in SAMprior as follows:
 
 ``` r
@@ -186,9 +199,9 @@ cat('SAM weight: ', wSAM_LRT)
 
     ## SAM weight:  0.7900601
 
-The default method to calculate *w* is using LRT, which is fully
+The default method to calculate $w$ is using LRT, which is fully
 data-driven. However, if investigators want to incorporate prior
-information on prior-data conflict to determine the mixture weight *w*,
+information on prior-data conflict to determine the mixture weight $w$,
 this can be achieved by using PPR method as follows:
 
 ``` r
@@ -202,10 +215,10 @@ cat('SAM weight: ', wSAM_PPR)
 
     ## SAM weight:  0.6172731
 
-The **`prior.odds`** indicates the prior probability of *H*<sub>0</sub>
-over the prior probability of *H*<sub>1</sub>. In this case (e.g.,
-**`prior.odds = 3/7`**), the prior information favors the presence
-prior-data conflict and it results in a decreased mixture weight.
+The **`prior.odds`** indicates the prior probability of $H_0$ over the
+prior probability of $H_1$. In this case (e.g., **`prior.odds = 3/7`**),
+the prior information favors the presence prior-data conflict and it
+results in a decreased mixture weight.
 
 When historical information is congruent with the current control arm,
 SAM weight reaches to the highest peak. As the level of prior-data
@@ -213,14 +226,13 @@ conflict increases, SAM weight decreases. This demonstrates that SAM
 prior is data-driven and self-adapting, favoring the informative
 (non-informative) prior component when there is little (substantial)
 evidence of prior-data conflict.
-![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)
+![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 #### SAM Prior Construction
 
 To construct the SAM prior, we mix the derived informative prior
-*π*<sub>1</sub>(*θ*) with a vague prior *π*<sub>0</sub>(*θ*) using
-pre-determined mixture weight by **`SAM_prior`** function in SAMprior as
-follows:
+$\pi_1(\theta)$ with a vague prior $\pi_0(\theta)$ using pre-determined
+mixture weight by **`SAM_prior`** function in SAMprior as follows:
 
 ``` r
 SAM.prior <- SAM_prior(if.prior = map_automix, 
@@ -236,7 +248,7 @@ SAM.prior
     ## a 42.5096368  7.1944649  1.0000000
     ## b 77.2076132 12.3741486  1.0000000
 
-where the non-informative prior *π*<sub>0</sub>(*θ*) follows a uniform
+where the non-informative prior $\pi_0(\theta)$ follows a uniform
 distribution.
 
 #### Decision Making
@@ -247,10 +259,10 @@ superior or inferior to a standard control after the trial has been
 completed and the data have been collected.
 
 The calibration step aims to identify the posterior probability cutoff
-*C* such that the type I error is controlled at a prespecified level.
-For superiority, this is based on the posterior decision rule
-Pr (*θ*<sub>*t*</sub> − *θ* \> *Δ* ∣ *D*) \> *C*,
-where *Δ* is the clinical margin, which is often 0.
+$C$ such that the type I error is controlled at a prespecified level.
+For superiority, this is based on the posterior decision rule $$
+\Pr(\theta_t - \theta > \Delta \mid D) > C,
+$$ where $\Delta$ is the clinical margin, which is often 0.
 
 This calibration can be carried out using the
 **`calibrate_cutoff_2arm`** function, as illustrated below:
@@ -276,7 +288,7 @@ PPC <- calibrate_cutoff_2arm(if.prior = map_automix,        ## MAP prior from hi
 ```
 
 To make the final decision using the calibrated posterior probability
-cutoff *C*, we can compute the posterior distribution based on the
+cutoff $C$, we can compute the posterior distribution based on the
 observed trial data. This can be accomplished using the **`postmix`**
 function from RBesT, as shown below:
 

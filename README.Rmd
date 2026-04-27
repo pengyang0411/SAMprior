@@ -1,8 +1,8 @@
 ---
 title: "SAMprior package"
 output:
-  md_document:
-    variant: markdown_github
+  github_document:
+    toc: true
 ---
 
 # Self-adapting Mixture (SAM) Priors 
@@ -113,7 +113,7 @@ borrowing.
 $$
 R = \frac{P(D \mid H_0, \theta_h)}{P(D \mid H_1, \theta_h)}
 = \frac{P(D \mid \theta = \theta_h)}
-{\max\{P(D \mid \theta = \theta_h + \delta),\; P(D \mid \theta = \theta_h - \delta)\}} .
+{\max\{P(D \mid \theta = \theta_h + \delta), P(D \mid \theta = \theta_h - \delta)\}} .
 $$
 
 where $P(D | \cdot)$ denotes the likelihood function. An alternative Bayesian
@@ -131,7 +131,7 @@ of an informative prior $\pi_1(\theta)$, constructed based on $D_h$, with a
 non-informative prior $\pi_0(\theta)$:
 
 $$
-\pi_{sam}(\theta) = w \pi_1(\theta) + (1 - w) \pi_0(\theta),
+\pi_{\text{sam}}(\theta) = w \pi_1(\theta) + (1 - w) \pi_0(\theta),
 $$
 
 where the mixture weight $w$ is calculated as:
@@ -143,7 +143,7 @@ $$
 As the level of prior-data conflict increases, the likelihood ratio $R$ 
 decreases, resulting in a decrease in the weight $w$ assigned to the 
 informative prior and a decrease in information borrowing. As a result,
-$\pi_{sam}(\theta)$ is data-driven and has the ability to self-adapt the 
+$\pi_{\text{sam}}(\theta)$ is data-driven and has the ability to self-adapt the 
 information borrowing based on the degree of prior-data conflict.
 
 To calculate mixture weight $w$ of the SAM prior, we assume the sample size 
