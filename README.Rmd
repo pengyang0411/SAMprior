@@ -126,7 +126,7 @@ $$
 where $P(H_0)$ and $P(H_1)$ is the prior probabilities of $H_0$ and $H_1$ 
 being true. $BF$ is the Bayes Factor that in this case is the same as LRT.
 
-The SAM prior, denoted as $\pi_{sam}(\theta)$, is then defined as a mixture
+The SAM prior, denoted as $\pi_{\text{sam}}(\theta)$, is then defined as a mixture
 of an informative prior $\pi_1(\theta)$, constructed based on $D_h$, with a 
 non-informative prior $\pi_0(\theta)$:
 
